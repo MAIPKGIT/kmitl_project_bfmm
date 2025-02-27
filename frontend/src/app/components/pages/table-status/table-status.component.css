@@ -1,0 +1,17 @@
+.bg-brown-dark {
+    background-color: #8B5E3C !important; /* น้ำตาลเข้ม */
+}
+.text-dark-brown {
+    color: #5C3D2E !important; /* ตัวหนังสือสีน้ำตาลเข้ม */
+}
+
+/* ปรับแต่งปุ่ม */
+.btn-primary-custom {
+    background-color: #A97142 !important; /* สีน้ำตาลทอง */
+    border-color: #8B5E3C !important;
+    color: white !important;
+}
+.btn-primary-custom:hover {
+    background-color: #8B5E3C !important;
+    border-color: #5C3D2E !important;
+}

@@ -1,0 +1,52 @@
+# Angular related
+node_modules/
+dist/
+out-tsc/
+.angular/
+
+# Build artifacts
+*.js
+*.js.map
+*.d.ts
+
+# Logs and Reports
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment files
+src/environments/*.environment.ts
+
+# IDE-specific files
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+
+# Optional NPM cache files
+.npm/
+package-lock.json
+yarn.lock
+
+# Coverage files
+coverage/
+
+# Angular Universal server build
+server/
+
+# MacOS system files
+._*
+
+# Miscellaneous
+*.bak
+*.orig
+*.rej

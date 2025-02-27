@@ -1,0 +1,17 @@
+# ใช้ Python base image
+FROM python:3.9-alpine
+
+# คัดลอกไฟล์ requirements.txt
+COPY requirements.txt .
+
+# อัปเดต pip และติดตั้ง dependencies
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+# คัดลอกโค้ด Flask ทั้งหมดเข้า container
+COPY . .
+
+# Expose port 9000
+EXPOSE 9000
+
+# ใช้ Gunicorn รัน Flask
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:9000", "run:app"]

@@ -1,0 +1,102 @@
+.custom-navbar {
+    background-color: #6F4E37; 
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-nav .nav-link {
+    color: white !important; /* เปลี่ยนสีข้อความใน Navbar */
+}
+
+.navbar-nav .nav-link.active {
+    color: white !important;
+    font-weight: bold !important;
+    background-color: #A67B5B;
+}
+
+.custom-cart {
+    background-color: #ECB176;
+    height: 100vh; /* ความสูงเต็มจอ */
+    overflow-y: auto; /* เพิ่ม scroll หากเนื้อหาเกิน */
+}
+
+.custom-menu-column {
+    background-color: #FAF7F0;
+    height: 100vh; /* ความสูงเต็มจอ */
+    overflow-y: auto; /* เพิ่ม scroll หากเนื้อหาเกิน */
+}
+
+.text-price {
+    color: #A67B5B;
+}
+
+#cartList .cart-item {
+    background-color: #ECB176;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    max-width: 90%;
+}
+
+#cartList .cart-item img {
+    width: 60px; /* ขนาดรูปภาพ */
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 10px;
+}
+
+#cartList .cart-item-details {
+    flex: 1;
+    font-size: 14px;
+    color: #5A3D2B; /* สีข้อความ */
+}
+
+#cartList .cart-item-details h6 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#cartList .cart-item-details p {
+    margin: 0;
+    font-size: 12px;
+    color: #5A3D2B;
+}
+
+#cartList .cart-item-actions {
+    display: flex;
+    align-items: center;
+}
+
+#cartList .cart-item-actions button {
+    margin-left: 5px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    color: white;
+}
+
+#cartList .cart-item-actions button.edit {
+    background-color: white;
+    color: black;
+}
+
+#cartList .cart-item-actions button.remove {
+    background-color: #5A3D2B;
+}
+.cart-footer {
+    background-color: #ECB176;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    bottom: 0;
+}
+
+.card {
+    width: 350px;
+}

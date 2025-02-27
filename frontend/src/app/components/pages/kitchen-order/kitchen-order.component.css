@@ -1,0 +1,145 @@
+.container-order {
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto; 
+}
+
+.row-order {
+    display: flex;
+    gap: 20px; 
+    flex-wrap: nowrap; 
+}
+
+.order-card {
+    background-color: #f0dcce;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 400px; 
+    flex-shrink: 0; 
+    overflow: hidden;
+    padding: 20px;
+}
+
+.order-item {
+    display: flex;
+    align-items: flex-start; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f0dcce;
+}
+
+.order-item .flex-grow-1 {
+    flex-basis: 0;
+    flex-grow: 1; 
+    max-width: 70%; 
+    overflow: hidden;
+    word-wrap: break-word; 
+    overflow-wrap: anywhere; 
+}
+
+.order-item .order-status {
+    padding-left: 10px;
+    flex-shrink: 0; 
+    text-align: right; 
+    max-width: 25%; 
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+h6 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.text-muted {
+    font-size: 0.85rem;
+}
+
+.order-item h6, .order-item small {
+    white-space: normal;
+    overflow: visible; 
+    text-overflow: clip; 
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 16px; 
+    height: 16px; 
+    margin-left: 8px; 
+    vertical-align: middle; 
+    background-color: rgb(177, 177, 177); 
+    cursor: pointer; 
+    border-radius: 3px; 
+}
+
+.status-indicator.gray {
+    background-color: rgb(177, 177, 177);
+}
+
+.status-indicator.orange {
+    background-color: orange;
+}
+
+.status-indicator.green {
+    background-color: rgb(0, 255, 0);
+}
+
+.completed-item {
+    background-color: #90EE90 !important; /* สีเขียวอ่อน */
+    transition: background-color 0.3s ease-in-out;
+}
+
+.order-card {
+    background-color: #f0dcce;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    padding: 20px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.check-category {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    padding-top: 20px;
+}
+
+.form-check {
+    margin: 0 10px; 
+}
+
+.form-check-input {
+    cursor: pointer; 
+}
+
+.form-check-label {
+    margin-left: 5px; 
+    font-size: 1rem; 
+    color: #495057; 
+}

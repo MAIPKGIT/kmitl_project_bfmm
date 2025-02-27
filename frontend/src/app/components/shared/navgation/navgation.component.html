@@ -1,0 +1,16 @@
+<nav class="navbar navbar-expand-lg navbar-light sticky-top custom-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" style="padding-left: 5%; color: white;">KMITL CAFE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav" style="padding-left: 5%;">
+                <a class="nav-link" *ngFor="let category of menu_types" (click)="selectMenuTypesById(category.id)">{{category.name}}</a>
+            </div>
+            <!-- <button class="btn btn-danger ms-auto me-3" *ngIf="isLoggedIn" (click)="logout()">Logout</button> -->
+            <button class="btn btn ms-auto me-3" style="color: white;">History</button>
+        </div>
+    </div>
+</nav>

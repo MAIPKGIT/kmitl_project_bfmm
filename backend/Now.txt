@@ -1,0 +1,34 @@
+```Note (ไม่ได้นับ Fronend / AI)```
+
++ 1. Database : Menu Disable / Enable
++ 2. Database : Mockup All Menu
++ 3. Database : Export All
++ 4. Backend : Order Payment Bug
++ 5. Backend : Order Stage Loop
++ 6. Backend : Order Cancel Menu
++ 7. Backend : Order History
++ 8. Backend : Order Stock Update
++ 9. Backend : Order Waste Insert
+
++ 10. Security : Require Role Login
++ 11. Security : Expire Time Login
++ 12. Security : API Secret Key JWT
+
+13. Server : Requirment Library
+14. Server : Deploy Kubenetes
+
+15. Tester : Unit Test All RestFulAPI
+16. Tester : Test Case All Website
+
+17. Diagram : ER-Diagram
+18. Diagram : Use Case Diagram
+19. Diagram : Use Case Description
+20. Diagram : Sequence Diagram
+21. Diagram : Software Arc Diagram
+22. Diagram : System Arc Diagram
+
+23. Document : Topic 1-5
+24. Document : Presentation
+25. Document : Manual
+
+26. Present : Prepare All

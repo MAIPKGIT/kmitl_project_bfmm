@@ -1,0 +1,18 @@
+.kitchen-nav-custom {
+    background-color: #6F4E37;
+}
+
+.nav-link {
+    color: white;
+}
+
+.nav-link:hover {
+    color: white !important;
+    font-weight: bold;
+    background-color: #A67B5B !important;
+}
+
+.nav-link.active {
+    font-weight: bold;
+    background-color: #A67B5B !important;
+}

@@ -1,0 +1,169 @@
+<nav class="navbar navbar-expand-lg navbar-light sticky-top custom-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" style="padding-left: 5%; color: white;">KMITL CAFE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav" style="padding-left: 5%;">
+                <a class="nav-link" *ngFor="let category of menu_types" (click)="selectMenuTypesById(category.id)">{{category.name}}</a>
+            </div>
+            <!-- <button class="btn btn-danger ms-auto me-3" *ngIf="isLoggedIn" (click)="logout()">Logout</button> -->
+            <button class="btn btn ms-auto me-3" style="color: white;">History</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid p-0">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12 col-md-8 text-white p-3 custom-menu-column">
+            <h2 class="ps-5 fw-bold" style="color: #A67B5B;" *ngIf="category">{{category.name}}</h2>
+            <div class="container my-5">
+                <div class="row g-3 justify-content-center justify-content-md-start">
+                    <!-- Menu Item -->
+                    <div class="col-12 col-sm-6 col-md-4 d-flex align-items-stretch justify-content-center"
+                        *ngFor="let menu of menu_by_type_id">
+                        <div class="card">
+                            <img [src]="'assets/images/menus/' + menu.image" class="card-img-top" alt="{{menu.name}}"
+                                data-bs-toggle="modal" data-bs-target="#menuDetailModal" (click)="sendMenuToCart(menu)">
+                            <div class="card-body d-flex flex-column justify-content-between">
+                                <h5 class="card-title text-dark">{{menu.name}}</h5>
+                                <p class="card-text fw-bold text-price">{{menu.price}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Cart -->
+        <div class="col-12 col-md-4 d-none d-md-block text-white p-3 custom-cart">
+            <h2 class="ps-5 fw-bold">ตะกร้า</h2>
+            <div id="cartList" class="list-group">
+                <li class="list-group-item d-flex flex-column align-items-start"
+                    *ngFor="let item of cartItems; let i = index">
+                    <div class="d-flex justify-content-between w-100">
+                        <div class="d-flex align-items-center">
+                            <img [src]="'assets/images/menus/' + item.image" alt="{{ item.name }}"
+                                style="width: 50px; height: 50px; margin-right: 10px;">
+                            <div class="cart-item-details">
+                                <h6>{{ item.name }} x {{ item.qty }}</h6>
+                                <p>{{ item.price * item.qty }}฿</p>
+                                <small>{{ item.note || 'ไม่มี' }}</small>
+                            </div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button class="remove btn btn-danger btn-sm" (click)="removeFromCart(i)">ลบ</button>
+                        </div>
+                    </div>
+                </li>
+            </div>
+            <div class="cart-footer mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 id="modalTotalPrice" class="fw-bold" style="color: #6F4E37;">รวมทั้งหมด: {{ getTotalPrice() }}฿</h5>
+                    <h5 class="fw-bold" style="color: #6F4E37;">โต๊ะที่: {{ tableByCode || 'Guest' }}</h5>
+                </div>
+                <button id="confirmOrderButton" class="btn w-100 fw-bold"
+                    style="background-color: #6F4E37; color: white;" (click)="confirmOrder()">ยืนยันคำสั่ง
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Button to trigger Cart Modal for mobile view -->
+<button type="button" class="btn btn-primary rounded-circle position-fixed d-md-none"
+    style="bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1050; background-color: #A67B5B; border-color: #A67B5B;"
+    data-bs-toggle="modal" data-bs-target="#cartModal">
+    <i class="fa-solid fa-cart-shopping" style="color: #ffffff;"></i>
+</button>
+
+<!-- Modal สำหรับแสดงตะกร้า -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cartModalLabel">ตะกร้าของคุณ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="cartModalList" class="list-group mb-3">
+                    <li class="list-group-item d-flex flex-column align-items-start"
+                        *ngFor="let item of cartItems; let i = index">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="d-flex align-items-center">
+                                <img [src]="'assets/images/menus/' + item.image" alt="{{ item.name }}"
+                                    style="width: 50px; height: 50px; margin-right: 10px;">
+                                <div class="cart-item-details">
+                                    <h6>{{ item.name }} x {{ item.qty }}</h6>
+                                    <p>{{ item.price * item.qty }}฿</p>
+                                    <small>{{ item.note || 'ไม่มี' }}</small>
+                                </div>
+                            </div>
+                            <div class="cart-item-actions">
+                                <button class="remove btn btn-danger btn-sm" (click)="removeFromCart(i)">ลบ</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <h6 id="modalTotalPrice" class="fw-bold">รวมทั้งหมด: {{ getTotalPrice() }}฿</h6>
+                <h6 id="modalTotalPrice" class="fw-bold">โต๊ะที่: {{ user }}</h6>
+                <button id="modalConfirmOrderButton" class="btn w-100 fw-bold"
+                    style="background-color: #6F4E37; color: white;" (click)="confirmOrder()" data-bs-dismiss="modal">
+                    ยืนยันคำสั่ง
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal สำหรับแสดงรายละเอียดเมนู -->
+<div class="modal fade" id="menuDetailModal" #menuDetailModal tabindex="-1" aria-labelledby="menuDetailModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #6F4E37;">
+                <h5 class="modal-title fw-bold" id="menuDetailModalLabel" style="color: white;">รายละเอียดเมนู</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form [formGroup]="menu_modalForm">
+                <div class="modal-body" style="background-color: #FAF7F0;">
+                    <img id="menuImage"
+                        [src]="'assets/images/menus/' + (menu_modalForm.get('image')?.value || 'espresso.png')"
+                        class="img-fluid mb-3 d-block mx-auto" alt="Menu Image">
+                    <h3>{{ menu_modalForm.get('name')?.value || 'ไม่มีข้อมูล' }}</h3>
+                    <p id="menuDes">
+                        <span>{{ menu_modalForm.get('des')?.value || 'ไม่มีข้อมูล' }}</span>
+                    </p>
+                    <h3 id="menuPrice">
+                        <span class="fw-bold" style="color: #A67B5B;">{{ menu_modalForm.get('price')?.value ||
+                            'ไม่มีข้อมูล' }} ฿</span>
+                    </h3>
+                    <div class="d-flex align-items-center mb-3">
+                        <!-- ปุ่มลดจำนวน -->
+                        <button id="decreaseQty" class="btn btn-outline-secondary" style="width: 40px;"
+                            (click)="decreaseQty(number)">
+                            -
+                        </button>
+                        <!-- จำนวน -->
+                        <input id="menuQty" type="number" class="form-control text-center mx-2"
+                            [value]="menu_modalForm.value.qty || 1" readonly style="width: 60px;" />
+                        <!-- ปุ่มเพิ่มจำนวน -->
+                        <button id="increaseQty" class="btn btn-outline-secondary" style="width: 40px;"
+                            (click)="increaseQty(number)">
+                            +
+                        </button>
+                    </div>
+                    <textarea id="menuNote" class="form-control mt-3" placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
+                        formControlName="note"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button id="addToCartButton" type="button" class="btn" data-bs-dismiss="modal"
+                        style="background-color: #6F4E37; color: white;" (click)="addToCart()">เพิ่มลงตะกร้า</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
