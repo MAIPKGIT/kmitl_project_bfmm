@@ -1,5 +1,6 @@
 import { TableStatusComponent } from './../pages/table-status/table-status.component';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
@@ -29,9 +30,10 @@ export class OrderingComponent implements OnInit{
   table: any;
   tableByCode: any;
   tableCode: any;
+  tableOrders: any[] = [];
 
   constructor(private router: Router, private route: ActivatedRoute, private service_order: OrderingService, private cdr: ChangeDetectorRef, private tokenStorage: TokenStorageService,
-    private tableService : TableStatusService)
+    private tableService : TableStatusService, @Inject(PLATFORM_ID) private platformId: Object, private ngZone: NgZone)
   { 
     this.menu_modalForm = new FormGroup({
       id: new FormControl(null),
@@ -50,15 +52,11 @@ export class OrderingComponent implements OnInit{
       console.log(this.menu_types);
     });
 
-    // ตรวจสอบว่ามี Token หรือไม่
     this.isLoggedIn = !!this.tokenStorage.getToken();
-    // this.user = localStorage.getItem('selectedTableId');
-    // ดึงค่า code จาก URL
     this.code = this.route.snapshot.paramMap.get('code');
     console.log('QR Code:', this.code);
 
     if (this.code) {
-      // ถ้ามี code ให้ตรวจสอบสถานะโต๊ะ
       this.verifyTableCode();
     }
 
@@ -67,9 +65,12 @@ export class OrderingComponent implements OnInit{
       this.tableByCode = res.table_id
       this.tableCode = res.code
 
-      console.log("asdfjasdf;lsajfl;");
       console.log("Table ID : ",this.tableByCode)
       console.log("Table Code : ", this.tableCode);
+
+      if (this.tableByCode) {
+        this.getTableOrders(this.tableByCode);
+      }
     })
 
     this.loadCartFromLocalStorage();
@@ -84,6 +85,16 @@ export class OrderingComponent implements OnInit{
       this.category = res
       console.log(this.category);
     })
+
+    if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
+      this.ngZone.runOutsideAngular(() => {
+        setInterval(() => {
+          this.ngZone.run(() => {
+            this.getTableOrders(this.tableByCode);
+          });
+        }, 5000);
+      });
+    }  
   }
 
   verifyTableCode() {
@@ -245,6 +256,7 @@ export class OrderingComponent implements OnInit{
         Swal.fire('ยืนยันคำสั่งเรียบร้อย', 'Your order has been placed successfully!', 'success');
         this.cartItems = []; // ล้างตะกร้าหลังจากสั่งสำเร็จ
         this.saveCartToLocalStorage(); // อัปเดต localStorage หลังล้างตะกร้า
+        this.getTableOrders(this.tableByCode);
       },
       (error) => {
         console.error('Error placing order:', error);
@@ -253,4 +265,39 @@ export class OrderingComponent implements OnInit{
     );
   }
   
+  getTableOrders(tableId: number) {
+    this.service_order.getOrderItemsByTable(tableId).subscribe(
+      (res) => {
+        this.tableOrders = res;
+        console.log("Orders for table:", this.tableOrders);
+      },
+      (error) => {
+        console.error("Error fetching table orders:", error);
+        this.tableOrders = [];
+      }
+    );
+  }
+
+  getTotalOrderPrice(): number {
+    return this.tableOrders.reduce((total, order) => {
+      return total + order.orders_items.reduce((subTotal: any, item: { total: any; }) => subTotal + item.total, 0);
+    }, 0);
+  }
+  
+  getOrderStatus(status_order: number, status_serve: number): string {
+    if (status_serve === 1) {
+      return 'อาหารถูกเสิร์ฟแล้ว';
+    }
+  
+    switch (status_order) {
+      case 0:
+        return 'กำลังเตรียม';
+      case 1:
+        return 'กำลังปรุงอาหาร';
+      case 2:
+        return 'อาหารพร้อมเสิร์ฟแล้ว';
+      default:
+        return 'สถานะไม่ระบุ';
+    }
+  }  
 }

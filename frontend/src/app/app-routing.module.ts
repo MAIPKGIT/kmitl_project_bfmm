@@ -9,17 +9,17 @@ import { TableStatusComponent } from './components/pages/table-status/table-stat
 import { RecipeComponent } from './components/pages/recipe/recipe.component';
 import { IngredientComponent } from './components/pages/ingredient/ingredient.component';
 import { WasteComponent } from './components/pages/waste/waste.component';
+import { HistoryComponent } from './components/pages/history/history.component';
 
 const routes: Routes = [
-  {path: "", component: LoginComponent},
-  // {path: "ordering/:id", component: OrderingComponent, canActivate: [ AuthGuard ]},
-  // {path: "ordering/:id", component: OrderingComponent},
+  { path: "", component: LoginComponent },
   { path: "ordering/:id/:code", component: OrderingComponent },
-  {path: "kitchen-order", component: KitchenOrderComponent},
-  {path: "recipe/:id", component: RecipeComponent},
-  {path: "table", component: TableStatusComponent, canActivate: [ AuthGuard ]},
-  {path: "ingredient", component: IngredientComponent},
-  {path: "waste", component: WasteComponent},
+  { path: "kitchen-order", component: KitchenOrderComponent, canActivate: [AuthGuard] },
+  { path: "recipe/:id", component: RecipeComponent, canActivate: [AuthGuard] },
+  { path: "table", component: TableStatusComponent, canActivate: [AuthGuard] },
+  { path: "ingredient", component: IngredientComponent, canActivate: [AuthGuard] },
+  { path: "waste", component: WasteComponent, canActivate: [AuthGuard] },
+  { path: "history", component: HistoryComponent, canActivate: [AuthGuard] },
 ];
 
 @NgModule({

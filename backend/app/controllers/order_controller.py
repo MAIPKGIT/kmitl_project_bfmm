@@ -286,7 +286,60 @@ def get_all_now():
         return jsonify({"message": f"Database Error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500
-    
+
+def get_orderitem_by_table(table_id):
+    try:
+        query = """
+            SELECT o.order_id, oi.order_item_id, o.table_id, oi.round_order, oi.create_date, 
+                m.id AS menu_id, m.name AS menu_name, m.price, oi.menu_qty, oi.menu_note,
+                m.type_id AS menu_type_id, oi.status_order, oi.status_serve
+            FROM `order` o
+            LEFT JOIN orderitem oi ON o.order_id = oi.order_id
+            LEFT JOIN menu m ON oi.menu_id = m.id
+            WHERE o.table_id = :table_id
+            ORDER BY oi.create_date DESC
+        """
+
+        result = db.session.execute(text(query), {"table_id": table_id}).mappings().fetchall()
+        
+        if not result:
+            return jsonify({"message": "No orders found for this table"}), 404
+
+        orders_dict = {}
+
+        for row in result:
+            order_id = row['order_id']
+            if order_id not in orders_dict:
+                orders_dict[order_id] = {
+                    'order_id': order_id,
+                    'table_id': row['table_id'],
+                    'orders_items': []
+                }
+
+            order_item = {
+                'order_item_id': row['order_item_id'],
+                'round_order': row['round_order'],
+                'create_date': row['create_date'].strftime('%d/%m/%Y %H:%M'),
+                'menu_id': row['menu_id'],
+                'menu_name': row['menu_name'],
+                'menu_type_id': row['menu_type_id'],
+                'price': row['price'],
+                'menu_qty': row['menu_qty'],
+                'menu_note': row['menu_note'],
+                'total': row['price'] * row['menu_qty'],
+                'status_order': row['status_order'],
+                'status_serve': row['status_serve']
+            }
+
+            orders_dict[order_id]['orders_items'].append(order_item)
+
+        return jsonify(list(orders_dict.values())), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"message": f"Database Error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500
+
 # Get All orders
 def get_all_orders():
     try:
@@ -572,7 +625,7 @@ def waste_order():
         reason = data['reason']
         note = data['note']
 
-        # หาก type เป็น ingredients
+        # หาก type เป็น ingredients → ให้ลบ ingredient
         if waste_type == "ingredients":
             ingredient = db.session.query(Ingredients).filter_by(id=waste_id).first()
 
@@ -596,7 +649,7 @@ def waste_order():
             db.session.delete(ingredient)
             db.session.commit()
 
-        # หาก type เป็น order
+        # หาก type เป็น order → **บันทึก waste แต่ไม่ต้องลบ orderitem**
         elif waste_type == "order":
             order_item = db.session.query(OrderItem).filter_by(order_item_id=waste_id).first()
 
@@ -612,7 +665,7 @@ def waste_order():
             # คำนวณราคา
             price = menu_item.price * quantity
 
-            # เตรียมข้อมูลเพื่อนำไป insert
+            # **บันทึกข้อมูล waste แต่ไม่ลบ order_item**
             waste_item = Waste(
                 item_name=menu_item.name,
                 quantity=quantity,
@@ -623,10 +676,6 @@ def waste_order():
                 note=note
             )
             db.session.add(waste_item)
-            db.session.commit()
-
-            # ลบ order item ที่ระบุ
-            db.session.delete(order_item)
             db.session.commit()
 
         else:

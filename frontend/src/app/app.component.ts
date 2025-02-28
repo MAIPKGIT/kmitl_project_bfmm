@@ -19,7 +19,8 @@ export class AppComponent {
       this.showNavbarKitchen = currentUrl === '/kitchen-order' 
       || currentUrl.startsWith('/recipe/') 
       || currentUrl.startsWith('/ingredient') 
-      || currentUrl.startsWith('/waste');
+      || currentUrl.startsWith('/waste')
+      || currentUrl.startsWith('/history');
     });
   }
 }

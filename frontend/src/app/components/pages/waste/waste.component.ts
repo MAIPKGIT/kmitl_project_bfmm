@@ -10,8 +10,10 @@ import { WasteService } from '../../../service/waste.service';
 })
 export class WasteComponent implements OnInit{
 
-  waste: any;
+  waste: any = [];
   selectedDate: string = '';
+  totalPrice: number = 0;
+  isDataEmpty: boolean = false; 
 
   constructor(private service: WasteService) { }
   ngOnInit(): void {
@@ -20,28 +22,35 @@ export class WasteComponent implements OnInit{
     this.fetchWasteByDate(); 
   }
 
-  fetchAllWaste(): void {
-    this.service.getAllWaste().subscribe((res) => {
-      this.waste = res;
-      console.log('All Waste:', this.waste);
-    });
-  }
-
   fetchWasteByDate(): void {
-    if (!this.selectedDate) {
-      this.fetchAllWaste();
-      return;
-    }
-
     this.service.getWasteByDate(this.selectedDate).subscribe(
       (res) => {
-        this.waste = res;
-        console.log('Waste on selected date:', this.waste);
+        if (Array.isArray(res) && res.length > 0) { 
+          this.waste = res;
+          this.isDataEmpty = false;
+          console.log('History on selected date:', this.waste);
+          this.calculateTotalPrice();
+        } else {
+          this.waste = [];
+          this.isDataEmpty = true;
+          this.totalPrice = 0;
+        }
       },
       (error) => {
         console.error('Error fetching waste by date:', error);
         this.waste = [];
+        this.isDataEmpty = true; 
+        this.totalPrice = 0;
       }
     );
   }
+
+  calculateTotalPrice(): void {
+    this.totalPrice = this.waste.reduce((sum: number, item: any) => {
+      const price = parseFloat(item.price) || 0; 
+      return sum + price;
+    }, 0);
+  
+    console.log('Total Price:', this.totalPrice);
+  }  
 }

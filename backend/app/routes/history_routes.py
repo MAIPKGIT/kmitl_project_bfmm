@@ -6,7 +6,8 @@ from app.controllers.history_controller import (
     get_history_by_id,
     update_history,
     delete_history,
-    get_histories_by_menu_id
+    get_histories_by_menu_id,
+    get_histories_by_date
 )
 
 history_bp = Blueprint('history', __name__)
@@ -18,3 +19,4 @@ history_bp.route('/<int:history_id>', methods=['GET'])(get_history_by_id)
 history_bp.route('/menu/<int:menu_id>', methods=['GET'])(get_histories_by_menu_id)
 history_bp.route('/<int:history_id>', methods=['PUT'])(update_history)
 history_bp.route('/<int:history_id>', methods=['DELETE'])(delete_history)
+history_bp.route('/date/<string:history_date>', methods=['GET'])(get_histories_by_date)

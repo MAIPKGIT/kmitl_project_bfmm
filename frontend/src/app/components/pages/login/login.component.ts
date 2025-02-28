@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import Swal from 'sweetalert2';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../service/login.service';
 import { TokenStorageService } from '../../../service/token-storage.service';
 
@@ -17,8 +17,9 @@ export class LoginComponent implements OnInit {
   errMsg = "";
   isLoginFailed = false;
   isLogin = false;
+  redirectUrl: string = '/table';
 
-  constructor(private loginService: LoginService, private router: Router, private tokenStorage: TokenStorageService) {
+  constructor(private loginService: LoginService, private router: Router, private tokenStorage: TokenStorageService, private route: ActivatedRoute) {
     this.loginForm = new FormGroup({
       username: new FormControl(),
       password: new FormControl()
@@ -30,6 +31,12 @@ export class LoginComponent implements OnInit {
     if (this.tokenStorage.getToken()) {
       this.isLogin = true;
     }
+
+    this.route.queryParams.subscribe(params => {
+      if (params['redirectUrl']) {
+        this.redirectUrl = params['redirectUrl']; // ถ้ามี redirectUrl ให้ใช้ path นั้น
+      }
+    });
   }
 
   onSubmit(): void {
@@ -41,12 +48,12 @@ export class LoginComponent implements OnInit {
         // this.tokenStorage.getToken()
         // console.log('Test 2 : ',this.tokenStorage.getToken());
         this.tokenStorage.saveUser(response.username)
-        Swal.fire('Login Successful!', 'Welcome back!', 'success');
-        this.router.navigate(['/table']);
+        Swal.fire('Login Successful!', response.message, 'success');
+        this.router.navigate([this.redirectUrl]);
       },
-      error: (err) => {
-        console.error(err);
-        Swal.fire('Login Failed', 'Invalid username or password.', 'error');
+      error: (response) => {
+        console.error(response.message);
+        Swal.fire('Login Failed', response.message, 'error');
       },
     });
   }

@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://kmitlcafe.sirawit.in.th:5000",
+    "target": "http://localhost:5000",
     "secure": false,
     "changeOrigin": true
   }

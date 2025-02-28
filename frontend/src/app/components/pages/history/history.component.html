@@ -1,0 +1,47 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-3 text-brown">
+            Order History <span class="date-text">วันที่ {{ selectedDate | date: 'dd/MM/yyyy' }}</span>
+        </h4>
+
+        <!-- Date Picker -->
+        <input type="date" class="form-control w-auto" [(ngModel)]="selectedDate" (change)="fetchHistoryByDate()">
+    </div>
+
+    <div class="mt-4">
+        <h5>สถิติการขายเมนู</h5>
+        <canvas #salesChart></canvas>
+    </div>
+
+    <div class="table-responsive" *ngIf="!isDataEmpty; else noData">
+        <table class="table table-striped history-table">
+            <thead>
+                <tr>
+                    <th>ชื่อเมนู</th>
+                    <th>จำนวน</th>
+                    <th>ยอดรวม (บาท)</th> 
+                    <th>วันที่</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="table-warning">
+                    <td colspan="2" class="text-end fw-bold">ยอดรวมทั้งหมด</td>
+                    <td class="fw-bold">{{ totalPrice | currency:'THB' }}</td> 
+                    <td></td> 
+                </tr>
+                <tr *ngFor="let item of history; let i = index">
+                    <td>{{ item.menu_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.total | currency:'THB' }}</td> 
+                    <td>{{ item.time_stamp | date:'dd/MM/yyyy HH:mm' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <ng-template #noData>
+        <div class="text-center text-muted mt-3">
+            ไม่มีข้อมูล
+        </div>
+    </ng-template>
+</div>

@@ -33,4 +33,9 @@ export class OrderingService {
     const postUrl = `${environment.serviceUrl}/api/order/`;
     return this.http.post(postUrl, orderData);
   }
+
+  getOrderItemsByTable(tableId: number) {
+    let getUrl = `${environment.serviceUrl}/api/order/get_orderitem_by_table/${tableId}`;
+    return this.http.get<any>(getUrl);
+  }
 }

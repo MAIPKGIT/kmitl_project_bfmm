@@ -11,7 +11,8 @@ from app.controllers.order_controller import (
     change_status_serve,
     cancel_order,
     waste_order,
-    stock_manager
+    stock_manager,
+    get_orderitem_by_table
 )
 
 order_bp = Blueprint('order', __name__)
@@ -23,7 +24,7 @@ order_bp.route('/get_all_now', methods=['GET'])(get_all_now)
 order_bp.route('/<int:order_id>', methods=['GET'])(get_order_by_id)
 order_bp.route('/<int:order_id>', methods=['PUT'])(update_order)
 order_bp.route('/<int:order_id>', methods=['DELETE'])(delete_order)
-
+order_bp.route('/get_orderitem_by_table/<int:table_id>', methods=['GET'])(get_orderitem_by_table)
 order_bp.route('/stock_manager', methods=['POST'])(stock_manager)
 order_bp.route('/change_status_order', methods=['POST'])(change_status_order)
 order_bp.route('/change_status_serve', methods=['POST'])(change_status_serve)

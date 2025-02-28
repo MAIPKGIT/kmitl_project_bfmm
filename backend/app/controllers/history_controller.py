@@ -1,4 +1,5 @@
 from app.models.history import History
+from app.models.menu import Menu
 from app import db
 from flask import jsonify, request
 from sqlalchemy.exc import SQLAlchemyError
@@ -52,11 +53,68 @@ def create_history():
 # Get All Histories
 def get_all_histories():
     try:
-        histories = History.query.all()
-        return jsonify([history.as_dict() for history in histories]), 200
+        histories = db.session.query(
+            History.id,
+            History.menu_id,
+            Menu.name.label("menu_name"),
+            History.quantity,
+            History.total,
+            History.time_stamp
+        ).join(Menu, History.menu_id == Menu.id).all()
+
+        return jsonify([
+            {
+                "id": history.id,
+                "menu_id": history.menu_id,
+                "menu_name": history.menu_name, 
+                "quantity": history.quantity,
+                "total": history.total,
+                "time_stamp": history.time_stamp
+            }
+            for history in histories
+        ]), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"message": f"Database Error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500
 
+def get_histories_by_date(history_date):
+    try:
+        parsed_date = datetime.strptime(history_date, "%Y-%m-%d")
+        histories = db.session.query(
+            History.id,
+            History.menu_id,
+            Menu.name.label("menu_name"),
+            History.quantity,
+            History.total,
+            History.time_stamp
+        ).join(Menu, History.menu_id == Menu.id) \
+         .filter(db.func.date(History.time_stamp) == parsed_date.date()) \
+         .all()
+
+        if histories:
+            return jsonify([
+                {
+                    "id": history.id,
+                    "menu_id": history.menu_id,
+                    "menu_name": history.menu_name,
+                    "quantity": history.quantity,
+                    "total": history.total,
+                    "time_stamp": history.time_stamp
+                }
+                for history in histories
+            ]), 200
+
+        return jsonify({"message": "No history records found for this date!"}), 404
+
+    except ValueError:
+        return jsonify({"message": "Invalid date format! Use YYYY-MM-DD."}), 400
+    except SQLAlchemyError as e:
+        return jsonify({"message": f"Database Error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500
+    
 # Get History by ID
 def get_history_by_id(history_id):
     try:

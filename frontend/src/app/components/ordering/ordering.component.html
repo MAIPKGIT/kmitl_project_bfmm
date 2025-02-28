@@ -10,7 +10,7 @@
                 <a class="nav-link" *ngFor="let category of menu_types" (click)="selectMenuTypesById(category.id)">{{category.name}}</a>
             </div>
             <!-- <button class="btn btn-danger ms-auto me-3" *ngIf="isLoggedIn" (click)="logout()">Logout</button> -->
-            <button class="btn btn ms-auto me-3" style="color: white;">History</button>
+            <button class="btn btn ms-auto me-3" style="color: white;" data-bs-toggle="modal" data-bs-target="#orderHistoryModal">History</button>
         </div>
     </div>
 </nav>
@@ -164,6 +164,43 @@
                         style="background-color: #6F4E37; color: white;" (click)="addToCart()">เพิ่มลงตะกร้า</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal แสดงรายการออเดอร์ของโต๊ะ -->
+<div class="modal fade" id="orderHistoryModal" tabindex="-1" aria-labelledby="orderHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderHistoryModalLabel">ประวัติการสั่งอาหาร (โต๊ะ {{ tableByCode }})</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="tableOrders.length > 0">
+                    <div *ngFor="let order of tableOrders">
+                        <ul class="list-group mb-3">
+                            <li *ngFor="let item of order.orders_items" class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">{{ item.menu_name }}</span> x {{ item.menu_qty }} 
+                                    <br />
+                                    <small class="text-muted">{{ item.menu_note || 'ไม่มีหมายเหตุ' }}</small>
+                                    <br />
+                                    <span class="badge bg-secondary">{{ getOrderStatus(item.status_order, item.status_serve) }}</span>
+                                </div>
+                                <span class="badge bg-secondary">{{ item.total }} ฿</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div *ngIf="tableOrders.length === 0">
+                    <p class="text-center">ไม่มีออเดอร์สำหรับโต๊ะนี้</p>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <h5 class="fw-bold" style="color: #6F4E37;">ยอดรวมทั้งหมด: {{ getTotalOrderPrice() }} ฿</h5>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
         </div>
     </div>
 </div>

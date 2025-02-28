@@ -100,7 +100,8 @@ from rapidfuzz import process
 
 menu_list = ["ข้าวกระเพราแซ่บเนื้อไข่ดาว", "กระเพราหมูกรอบ", "กระเพราทะเล", "ข้าวผัดกุ้ง", "ต้มยำกุ้ง"]
 
-model_path = os.path.abspath(os.path.expanduser('~/project-deploy-1/backend/app/nlp/crf_model_ner_v1'))
+# model_path = os.path.abspath(os.path.expanduser('~/project-deploy-1/backend/app/nlp/crf_model_ner_v1'))
+model_path = r"D:\KMITL\final_project_kmitl\เริ่มใหม่เทอม_2\BFMM\kmitl_project_bfmm\backend\app\nlp\crf_model_ner_v1"
 
 # Check if the model file actually exists
 if not os.path.exists(model_path):

@@ -15,6 +15,7 @@ import { AuthInterceptor } from './helper/auth.interceptor';
 import { RecipeComponent } from './components/pages/recipe/recipe.component';
 import { IngredientComponent } from './components/pages/ingredient/ingredient.component';
 import { WasteComponent } from './components/pages/waste/waste.component';
+import { HistoryComponent } from './components/pages/history/history.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { WasteComponent } from './components/pages/waste/waste.component';
     RecipeComponent,
     IngredientComponent,
     WasteComponent,
+    HistoryComponent,
   ],
   imports: [
     BrowserModule,

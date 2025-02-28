@@ -1,14 +1,14 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center">
         <h4 class="mb-3 text-brown">
-            ประวัติขยะอาหาร <span class="date-text">วันที่ {{ selectedDate | date: 'dd/MM/yyyy' }}</span>
+            Waste History <span class="date-text">วันที่ {{ selectedDate | date: 'dd/MM/yyyy' }}</span>
         </h4>
 
         <!-- Date Picker -->
         <input type="date" class="form-control w-auto" [(ngModel)]="selectedDate" (change)="fetchWasteByDate()">
     </div>
 
-    <div class="table-responsive">
+    <div class="table-responsive" *ngIf="!isDataEmpty; else noData">
         <table class="table table-striped waste-table">
             <thead>
                 <tr>
@@ -21,6 +21,11 @@
                 </tr>
             </thead>
             <tbody>
+                <tr class="table-warning">
+                    <td colspan="3" class="text-end fw-bold">ยอดรวม</td>
+                    <td class="fw-bold">{{ totalPrice | currency:'THB' }}</td>
+                    <td colspan="2"></td>
+                </tr>
                 <tr *ngFor="let item of waste; let i = index">
                     <td>{{ item.item_name }}</td>
                     <td>{{ item.quantity }}</td>
@@ -32,4 +37,9 @@
             </tbody>
         </table>
     </div>
+    <ng-template #noData>
+        <div class="text-center text-muted mt-3">
+            ไม่มีข้อมูล
+        </div>
+    </ng-template>
 </div>
