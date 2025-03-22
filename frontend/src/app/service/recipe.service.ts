@@ -52,4 +52,51 @@ export class RecipeService {
     return this.http.put<any>(putUrl, stepData);
   }
 
+  getAllIngredientPacks() {
+    return this.http.get<any>(`${environment.serviceUrl}/api/ingredientpacks/`);
+  }
+  
+  createMenuIngredientPack(data: any) {
+    return this.http.post<any>(`${environment.serviceUrl}/api/menuingredientpack/`, data);
+  }  
+
+  getMenuIngredientPacks(menu_id: number) {
+    return this.http.get<any>(`${environment.serviceUrl}/api/menuingredientpack/`);
+  }
+  
+  updateMenuIngredientPack(id: number, data: any) {
+    return this.http.put<any>(`${environment.serviceUrl}/api/menuingredientpack/${id}`, data);
+  }  
+
+  getAllIngredients() {
+    return this.http.get<any>(`${environment.serviceUrl}/api/ingredients/`);
+  }
+
+  getMenuIngredients(menu_id: number) {
+    return this.http.get<any>(`${environment.serviceUrl}/api/menuingredients/`);
+  }
+
+  createMenuIngredient(data: any) {
+    return this.http.post<any>(`${environment.serviceUrl}/api/menuingredients/`, data);
+  }
+
+  updateMenuIngredient(id: number, data: any) {
+    return this.http.put<any>(`${environment.serviceUrl}/api/menuingredients/${id}`, data);
+  }
+
+  deleteMenuIngredient(id: number) {
+    return this.http.delete<any>(`${environment.serviceUrl}/api/menuingredients/${id}`);
+  }
+
+  deleteMenu(menu_id: number) {
+    return this.http.delete<any>(`${environment.serviceUrl}/api/menu/${menu_id}`);
+  }
+  
+  deleteStep(stepId: number) {
+    return this.http.delete<any>(`${environment.serviceUrl}/api/step/${stepId}`);
+  }
+  
+  deleteMenuIngredientPack(packId: number) {
+    return this.http.delete<any>(`${environment.serviceUrl}/api/menuingredientpack/${packId}`);
+  }  
 }

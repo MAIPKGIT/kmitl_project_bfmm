@@ -272,7 +272,11 @@ export class OrderingComponent implements OnInit{
         console.log("Orders for table:", this.tableOrders);
       },
       (error) => {
-        console.error("Error fetching table orders:", error);
+        if (error.status === 404) {
+          console.log("ไม่มีรายการอาหารที่สั่ง"); 
+        } else {
+          console.warn("เกิดข้อผิดพลาดในการดึงรายการอาหาร:", error); 
+        }
         this.tableOrders = [];
       }
     );

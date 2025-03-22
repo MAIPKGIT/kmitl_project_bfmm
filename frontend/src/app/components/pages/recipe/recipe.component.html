@@ -34,7 +34,6 @@
             </div>
             <div class="modal-body">
                 <form #menuForm="ngForm">
-                    <!-- ประเภทเมนู -->
                     <div class="mb-3">
                         <label for="menuType" class="form-label">ประเภทเมนู</label>
                         <select class="form-select" [(ngModel)]="newMenu.type_id" name="type_id" required>
@@ -42,49 +41,35 @@
                             </option>
                         </select>
                     </div>
-
-                    <!-- ชื่อเมนู -->
                     <div class="mb-3">
                         <label for="menuName" class="form-label">ชื่อเมนู</label>
                         <input type="text" class="form-control" [(ngModel)]="newMenu.name" name="name" required>
                     </div>
-
-                    <!-- อัปโหลดรูปภาพ -->
                     <div class="mb-3">
                         <label for="menuImage" class="form-label">อัปโหลดรูปภาพ</label>
                         <input type="file" class="form-control" (change)="onFileSelected($event)">
                     </div>
-                    <!-- แสดงชื่อไฟล์ที่เลือก -->
                     <div *ngIf="selectedFile">
                         <p>ไฟล์ที่เลือก: {{ selectedFile.name }}</p>
                     </div>
-
-                    <!-- รายละเอียดเมนู -->
                     <div class="mb-3">
                         <label for="menuDescription" class="form-label">รายละเอียดเมนู</label>
                         <textarea class="form-control" [(ngModel)]="newMenu.des" name="des"></textarea>
                     </div>
-
-                    <!-- ราคา -->
                     <div class="mb-3">
                         <label for="menuPrice" class="form-label">ราคา (บาท)</label>
                         <input type="number" class="form-control" [(ngModel)]="newMenu.price" name="price" required>
                     </div>
-
-                    <!-- แท็ก -->
                     <div class="mb-3">
                         <label for="menuTag" class="form-label">แท็ก (ถ้ามี)</label>
                         <input type="text" class="form-control" [(ngModel)]="newMenu.tag" name="tag">
                     </div>
-
-                    <!-- คำเตือน -->
                     <div class="mb-3">
                         <label for="menuWarning" class="form-label">คำเตือน (ถ้ามี)</label>
                         <input type="text" class="form-control" [(ngModel)]="newMenu.warning" name="warning">
                     </div>
                 </form>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
                     (click)="onModalClose()">ปิด</button>
@@ -95,6 +80,7 @@
     </div>
 </div>
 
+<!-- Modal สำหรับเพิ่มขั้นตอน -->
 <div class="modal fade" id="addStepModal" tabindex="-1" aria-labelledby="addStepModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -123,86 +109,187 @@
     </div>
 </div>
 
+<!-- Modal สำหรับเพิ่มวัตถุดิบแพ็ค -->
+<div class="modal fade" id="addIngredientPackModal" tabindex="-1" aria-labelledby="addIngredientPackModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addIngredientPackModalLabel">Ingredient Pack</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">เลือก Ingredient Pack</label>
+                        <select class="form-select" [(ngModel)]="selectedIngredientPack.ingredient_pack_id"
+                            name="ingredient_pack_id">
+                            <option *ngFor="let pack of ingredientPacks" [value]="pack.id">{{ pack.name }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">จำนวน (qty)</label>
+                        <input type="number" class="form-control" [(ngModel)]="selectedIngredientPack.qty" name="qty">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button class="btn btn-primary" (click)="submitIngredientPack()" data-bs-dismiss="modal">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal สำหรับเพิ่มวัตถุดิบเดี่ยว -->
+<div class="modal fade" id="addMenuIngredientModal" tabindex="-1" aria-labelledby="addMenuIngredientModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMenuIngredientModalLabel">เพิ่มวัตถุดิบเฉพาะในเมนู</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div *ngFor="let ing of menuIngredients; let i = index; trackBy: trackByFn"
+                        class="row align-items-center mb-2">
+                        <div class="col-md-4">
+                            <select class="form-select" [(ngModel)]="menuIngredients[i].ingredient_id"
+                                name="ingredient_{{i}}">
+                                <option *ngFor="let ing of ingredients" [value]="ing.Ingredients_id">
+                                    {{ ing.Ingredients_name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" [(ngModel)]="menuIngredients[i].volume"
+                                name="volume_{{i}}" placeholder="ปริมาณ">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" [(ngModel)]="menuIngredients[i].unit"
+                                name="unit_{{i}}" placeholder="หน่วย">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger"
+                                (click)="deleteMenuIngredient(ing.id)">ลบ</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-2" (click)="addNewMenuIngredient()">+
+                        เพิ่มวัตถุดิบ</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button class="btn btn-primary" (click)="submitMenuIngredient()" data-bs-dismiss="modal">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal สำหรับแก้ไขเมนู -->
 <div class="modal fade" id="editMenuModal" tabindex="-1" aria-labelledby="editMenuModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog" style="max-width: 90%;">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header modal-custom">
                 <h5 class="modal-title" id="editMenuModalLabel">แก้ไขเมนู</h5>
                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <!-- ข้อมูลเมนู -->
-                    <div class="col-md-6">
-                        <h5 class="fw-bold text-primary">รายละเอียดเมนู</h5>
+                    <div class="col-md-4">
+                        <h5 class="fw-bold">รายละเอียดเมนู</h5>
                         <form>
-                            <!-- ชื่อเมนู -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">ชื่อเมนู</label>
                                 <input type="text" class="form-control" [(ngModel)]="editedMenu.name" name="name">
                             </div>
-
-                            <!-- รายละเอียดเมนู -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">รายละเอียด</label>
                                 <textarea class="form-control" rows="3" [(ngModel)]="editedMenu.des"
                                     name="des"></textarea>
                             </div>
-
-                            <!-- ราคา -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">ราคา (บาท)</label>
                                 <input type="number" class="form-control" [(ngModel)]="editedMenu.price" name="price">
                             </div>
-
-                            <!-- แท็ก (Tag) -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">แท็ก (ถ้ามี)</label>
                                 <input type="text" class="form-control" [(ngModel)]="editedMenu.tag" name="tag">
                             </div>
-
-                            <!-- คำเตือน (Warning) -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">คำเตือน (ถ้ามี)</label>
                                 <input type="text" class="form-control" [(ngModel)]="editedMenu.warning" name="warning">
                             </div>
-
-                            <!-- อัปโหลดรูปภาพ -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">อัปโหลด/เปลี่ยนรูปภาพ</label>
                                 <input #fileInput type="file" class="form-control" (change)="onFileSelected($event)">
                             </div>
+                            <button type="button" class="btn btn-warning" (click)="updateMenu()">อัพเดทเมนู</button>
                         </form>
                     </div>
-
-
-                    <!-- ขั้นตอนการทำ -->
-                    <div class="col-md-6">
-                        <h5 class="fw-bold text-success">ขั้นตอนการทำ</h5>
+                    <div class="col-md-4">
+                        <h5 class="fw-bold">ขั้นตอนการทำ</h5>
                         <div *ngFor="let step of steps; let i = index" class="mb-3">
                             <label class="fw-bold">ขั้นตอนที่ {{ step.step }}</label>
                             <div class="input-group">
-                                <!-- เปลี่ยนเป็น textarea และกำหนด min-height -->
                                 <textarea class="form-control step-textarea" rows="2" [(ngModel)]="step.description"
                                     name="step{{i}}"></textarea>
-                                <button type="button" class="btn btn-danger" (click)="removeStep(i)">ลบ</button>
                             </div>
                         </div>
-
-                        <!-- ปุ่มเพิ่มขั้นตอน -->
                         <button type="button" class="btn btn-secondary" (click)="addStep()">+ เพิ่มขั้นตอน</button>
+                        <div style="padding-top: 15px;">
+                            <button type="button" class="btn btn-success" (click)="createNewSteps()"
+                                style="margin-right: 15px;">ยืนยันเพิ่มขั้นตอน</button>
+                            <button type="button" class="btn btn-warning" (click)="updateSteps()">อัพเดทขั้นตอน</button>
+                        </div>
+                        <hr>
+                        <h5 class="fw-bold">วัตถุดิบแพ็คที่ใช้</h5>
+                        <div *ngFor="let pack of menuIngredientPacks; let i = index" class="mb-3">
+                            <div class="input-group">
+                                <select class="form-select" [(ngModel)]="pack.ingredient_pack_id"
+                                    name="pack_select_{{i}}">
+                                    <option *ngFor="let p of ingredientPacks" [value]="p.id">{{ p.name }}</option>
+                                </select>
+                                <input type="number" class="form-control" [(ngModel)]="menuIngredientPacks[i].qty"
+                                    name="pack_qty_{{i}}">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-warning" (click)="updateMenuIngredientPacks()">อัปเดต
+                            Ingredient Pack</button>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="fw-bold">วัตถุดิบเฉพาะที่ใช้</h5>
+                        <div *ngFor="let ing of menuIngredients; let i = index" class="mb-3">
+                            <label class="fw-bold">วัตถุดิบที่ {{ i + 1 }}</label>
+                            <div class="input-group">
+                                <select class="form-select" [(ngModel)]="menuIngredients[i].ingredient_id"
+                                    name="ingredient_{{i}}">
+                                    <option *ngFor="let ingOption of ingredients" [value]="ingOption.ingredient_id">
+                                        {{ ingOption.ingredient_name }}
+                                    </option>
+                                </select>
+                                <input type="number" class="form-control" [(ngModel)]="menuIngredients[i].volume"
+                                    name="volume_{{i}}" placeholder="ปริมาณ">
+                                <input type="text" class="form-control" [(ngModel)]="menuIngredients[i].unit"
+                                    name="unit_{{i}}" placeholder="หน่วย">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary mt-2" (click)="addNewMenuIngredient()">+
+                            เพิ่มวัตถุดิบเดี่ยว</button>
+                        <div style="padding-top: 10px;">
+                            <button class="btn btn-success mt-2" (click)="createNewMenuIngredients()"
+                                style="margin-right: 15px;">ยืนยันเพิ่มวัตถุดิบ</button>
+                            <button class="btn btn-warning mt-2"
+                                (click)="updateMenuIngredients()">อัพเดทวัตถุดิบเดี่ยว</button>
+                        </div>
                     </div>
                 </div>
             </div>
-
             <div class="modal-footer">
-                <button type="button" class="btn btn-warning" (click)="updateMenu()">อัพเดทเมนู</button>
-                <button type="button" class="btn btn-success" (click)="createNewSteps()">เพิ่มขั้นตอน</button>
-                <button type="button" class="btn btn-primary" (click)="updateSteps()">อัพเดทขั้นตอน</button>
+                <button type="button" class="btn btn-danger" (click)="deleteFullMenu()">ลบเมนู</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
             </div>
-
         </div>
     </div>
 </div>

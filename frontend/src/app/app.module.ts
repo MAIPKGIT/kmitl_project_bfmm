@@ -3,7 +3,6 @@ import { BrowserModule, provideClientHydration, withEventReplay } from '@angular
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NavgationComponent } from './components/shared/navgation/navgation.component';
-import { ProductComponent } from './components/pages/product/product.component';
 import { HttpClientModule , HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './components/pages/login/login.component';
@@ -16,12 +15,12 @@ import { RecipeComponent } from './components/pages/recipe/recipe.component';
 import { IngredientComponent } from './components/pages/ingredient/ingredient.component';
 import { WasteComponent } from './components/pages/waste/waste.component';
 import { HistoryComponent } from './components/pages/history/history.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavgationComponent,
-    ProductComponent,
     LoginComponent,
     OrderingComponent,
     KitchenOrderComponent,
@@ -37,6 +36,7 @@ import { HistoryComponent } from './components/pages/history/history.component';
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
+    NgSelectModule,
     ReactiveFormsModule
   ],
   providers: [

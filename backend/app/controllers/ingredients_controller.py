@@ -77,24 +77,36 @@ def update_ingredient(ingredients_id):
         data = request.get_json()
         ingredient = Ingredients.query.get(ingredients_id)
 
-        if ingredient:
-            ingredient.Ingredients_name = data.get("Ingredients_name", ingredient.Ingredients_name)
-            ingredient.Ingredients_image = data.get("Ingredients_image", ingredient.Ingredients_image)
-            ingredient.Ingredients_des = data.get("Ingredients_des", ingredient.Ingredients_des)
-            ingredient.main_stock = data.get("main_stock", ingredient.main_stock)
-            ingredient.sub_stock = data.get("sub_stock", ingredient.sub_stock)
-            ingredient.unit = data.get("unit", ingredient.unit)
+        if not ingredient:
+            return jsonify({"message": "Ingredient not found!"}), 404
 
-            # Input Validation
-            if "main_stock" in data and (not isinstance(data["main_stock"], int) or data["main_stock"] < 0):
-                return jsonify({"message": "main_stock must be a non-negative integer!"}), 400
+        old_main = ingredient.main_stock
+        old_sub = ingredient.sub_stock
 
-            if "sub_stock" in data and (not isinstance(data["sub_stock"], int) or data["sub_stock"] < 0):
-                return jsonify({"message": "sub_stock must be a non-negative integer!"}), 400
+        new_main = data.get("main_stock", old_main)
+        new_sub = data.get("sub_stock", old_sub)
 
-            db.session.commit()
-            return jsonify({"message": "Ingredient updated successfully!"}), 200
-        return jsonify({"message": "Ingredient not found!"}), 404
+        if new_main > old_main:
+            increase_amount = new_main - old_main
+
+            if old_sub < increase_amount:
+                return jsonify({
+                    "message": f"ไม่สามารถเพิ่ม Main Stock ได้ เนื่องจาก Sub Stock มีไม่พอ! "
+                               f"ต้องการ {increase_amount} แต่เหลือเพียง {old_sub} หน่วย"
+                }), 400
+            
+            new_sub = old_sub - increase_amount
+
+        ingredient.Ingredients_name = data.get("Ingredients_name", ingredient.Ingredients_name)
+        ingredient.Ingredients_image = data.get("Ingredients_image", ingredient.Ingredients_image)
+        ingredient.Ingredients_des = data.get("Ingredients_des", ingredient.Ingredients_des)
+        ingredient.main_stock = new_main
+        ingredient.sub_stock = new_sub
+        ingredient.unit = data.get("unit", ingredient.unit)
+
+        db.session.commit()
+        return jsonify({"message": "Ingredient updated successfully!"}), 200
+
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"message": f"Database Error: {str(e)}"}), 500

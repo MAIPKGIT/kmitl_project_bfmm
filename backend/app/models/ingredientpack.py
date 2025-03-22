@@ -4,14 +4,14 @@ class IngredientPack(db.Model):
     __tablename__ = 'ingredientpack'
 
     id = db.Column(db.Integer, primary_key=True)
-    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=False)
-    ingredient_pack_id = db.Column(db.Integer, db.ForeignKey('ingredientpackitems.ingredient_pack_id'), nullable=False)
-    qty = db.Column(db.Integer, nullable=False)
-
-    def __init__(self, menu_id, ingredient_pack_id, qty):
-        self.menu_id = menu_id
-        self.ingredient_pack_id = ingredient_pack_id
-        self.qty = qty
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    stock = db.Column(db.Integer, nullable=False)
 
     def as_dict(self):
-        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "stock": self.stock
+        }

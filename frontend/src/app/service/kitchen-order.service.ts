@@ -57,7 +57,6 @@ export class KitchenOrderService {
     const formData = new FormData();
     formData.append('file', audioFile, audioFile.name);
 
-    // ✅ Debug: ตรวจสอบว่า FormData มีค่าอะไรบ้าง
     for (let pair of formData.entries()) {
         console.log("🔹 FormData:", pair[0], pair[1]);  
     }

@@ -1,1 +1,307 @@
-<p>ingredient works!</p>
+<div class="container mt-4">
+    <div class="d-flex flex-column align-items-center mt-4">
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <button class="btn btn-warning px-4 py-2 fw-bold shadow" (click)="setView('pack')">
+                Pack
+            </button>
+            <button class="btn btn-warning px-4 py-2 fw-bold shadow" (click)="setView('main')">
+                Main Stock
+            </button>
+            <button class="btn btn-warning px-4 py-2 fw-bold shadow" (click)="setView('sub')">
+                Sub Stock
+            </button>
+        </div>
+
+        <div class="table-responsive mt-3" *ngIf="selectedView === 'pack'">
+            <table class="table table-bordered align-middle">
+                <thead class="table table-striped waste-table">
+                    <tr>
+                        <th>Name</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackModal">
+                                + เพิ่มข้อมูล
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let item of pack">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.stock }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-2" (click)="editPack(item)">แก้ไข</button>
+                            <button class="btn btn-sm btn-danger" (click)="deletePackAndItems(item.id)">ลบ</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-responsive mt-3" *ngIf="selectedView === 'main' || selectedView === 'sub'">
+            <table class="table table-bordered align-middle">
+                <thead class="table table-striped waste-table">
+                    <tr>
+                        <th>รูปภาพ</th>
+                        <th>ชื่อวัตถุดิบ</th>
+                        <th>รายละเอียด</th>
+                        <th>จำนวน ({{ selectedStockField === 'main_stock' ? 'Main' : 'Sub' }})</th>
+                        <th>หน่วย</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            <button class="btn btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#addIngredientModal">+ เพิ่มวัตถุดิบ</button>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let ing of ingredients">
+                        <td><img [src]="'assets/images/ingredients/' + ing.Ingredients_image" width="70"></td>
+                        <td>{{ ing.Ingredients_name }}</td>
+                        <td>{{ ing.Ingredients_des }}</td>
+                        <td>{{ selectedStockField === 'main_stock' ? ing.main_stock : ing.sub_stock }}</td>
+                        <td>{{ ing.unit }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-1" (click)="editIngredient(ing)">แก้ไข</button>
+                            <button class="btn btn-sm btn-danger"
+                                (click)="deleteIngredient(ing.Ingredients_id)">ลบ</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form สำหรับเพิ่มข้อมูล -->
+<div class="modal fade" id="addPackModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">เพิ่มข้อมูล Ingredient Pack</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">ชื่อ:</label>
+                        <input type="text" class="form-control" [(ngModel)]="newIngredient.name" name="name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">รายละเอียด:</label>
+                        <input type="text" class="form-control" [(ngModel)]="newIngredient.description"
+                            name="description">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">สต็อก:</label>
+                        <input type="number" class="form-control" [(ngModel)]="newIngredient.stock" name="stock">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-primary" (click)="addPack()" data-bs-dismiss="modal">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form สำหรับเพิ่ม Items -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">เพิ่ม Items ใน Pack</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>จำนวน</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of newItems; let i = index">
+                            <td>
+                                <select class="form-select" [(ngModel)]="item.ingredient_id" name="ingredient_id_{{i}}">
+                                    <option *ngFor="let ing of ingredients" [value]="ing.Ingredients_id">
+                                        {{ ing.Ingredients_name }}
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" [(ngModel)]="item.qty" name="qty_{{i}}">
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" (click)="removeItem(i)">ลบ</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-primary btn-sm" (click)="addItemRow()">+ เพิ่มแถว</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-success" (click)="submitItems()"
+                    data-bs-dismiss="modal">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form สำหรับแก้ไข Pack และ Items -->
+<div class="modal fade" id="editPackModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">แก้ไข Pack และ Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label>ชื่อ:</label>
+                        <input class="form-control" [(ngModel)]="editPackData.name" name="edit_name">
+                    </div>
+                    <div class="mb-3">
+                        <label>รายละเอียด:</label>
+                        <input class="form-control" [(ngModel)]="editPackData.description" name="edit_description">
+                    </div>
+                    <div class="mb-3">
+                        <label>สต็อก:</label>
+                        <input type="number" class="form-control" [(ngModel)]="editPackData.stock" name="edit_stock">
+                    </div>
+                    <button class="btn btn-success" type="button" (click)="updatePack()">อัปเดตแพ็ค</button>
+                </form>
+                <hr>
+                <h6>รายการ Item:</h6>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>วัตถุดิบ</th>
+                            <th>จำนวน</th>
+                            <th>อัปเดต</th>
+                            <th>เพิ่มใหม่</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of editItems; let i = index">
+                            <td>
+                                <select class="form-select" [(ngModel)]="item.ingredient_id"
+                                    name="edit_ingredient_id_{{i}}">
+                                    <option *ngFor="let ing of ingredients" [value]="ing.Ingredients_id">
+                                        {{ ing.Ingredients_name }}
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" [(ngModel)]="item.qty" name="edit_qty_{{i}}">
+                            </td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" (click)="updateItem(item)">อัปเดตไอเทม</button>
+                            </td>
+                            <td *ngIf="!item.id">
+                                <button class="btn btn-success btn-sm"
+                                    (click)="submitNewItem(item)">เพิ่มไอเทมใหม่</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-secondary btn-sm" (click)="addNewEditItem()">+ เพิ่มแถวใหม่</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Ingredient Modal -->
+<div class="modal fade" id="addIngredientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">เพิ่มวัตถุดิบ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">ชื่อวัตถุดิบ</label>
+                    <input class="form-control" [(ngModel)]="newIngredientData.Ingredients_name">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">รายละเอียด</label>
+                    <input class="form-control" [(ngModel)]="newIngredientData.Ingredients_des">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">เลือกรูปภาพ</label>
+                    <input class="form-control" type="file" (change)="onImageSelected($event)">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Main Stock</label>
+                    <input class="form-control" type="number" [(ngModel)]="newIngredientData.main_stock">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Sub Stock</label>
+                    <input class="form-control" type="number" [(ngModel)]="newIngredientData.sub_stock">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">หน่วย (เช่น ml, g)</label>
+                    <input class="form-control" [(ngModel)]="newIngredientData.unit">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button class="btn btn-primary" (click)="createIngredient()" data-bs-dismiss="modal">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Ingredient Modal -->
+<div class="modal fade" id="editIngredientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">แก้ไขวัตถุดิบ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">ชื่อวัตถุดิบ</label>
+                    <input class="form-control" [(ngModel)]="editIngredientData.Ingredients_name">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">รายละเอียด</label>
+                    <input class="form-control" [(ngModel)]="editIngredientData.Ingredients_des">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">เลือกรูปภาพ (ถ้าต้องการเปลี่ยน)</label>
+                    <input class="form-control" type="file" (change)="onEditImageSelected($event)">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Main Stock</label>
+                    <input class="form-control" type="number" [(ngModel)]="editIngredientData.main_stock">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Sub Stock</label>
+                    <input class="form-control" type="number" [(ngModel)]="editIngredientData.sub_stock">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">หน่วย (เช่น ml, g)</label>
+                    <input class="form-control" [(ngModel)]="editIngredientData.unit">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button class="btn btn-primary" (click)="updateIngredient()" data-bs-dismiss="modal">อัปเดต</button>
+            </div>
+        </div>
+    </div>
+</div>

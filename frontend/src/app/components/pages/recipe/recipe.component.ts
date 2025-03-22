@@ -21,9 +21,17 @@ export class RecipeComponent implements OnInit {
   steps: {
     isNew: boolean;
     id: any; step: number; description: string 
-}[] = [];
+  }[] = [];
   createdMenuId: number | null = null;
   editedMenu: any = {};
+
+  ingredientPacks: any[] = [];
+  selectedIngredientPack = { ingredient_pack_id: null, qty: null };
+  menuIngredientPacks: any[] = [];
+
+  ingredients: any[] = [];
+  menuIngredients: any[] = [];
+  selectedMenuIngredient = { ingredient_id: null, volume: null, unit: '' };
 
   constructor(
     private service: RecipeService,
@@ -48,6 +56,158 @@ export class RecipeComponent implements OnInit {
       }
     });
   }
+
+  getIngredientPackName(packId: number): string {
+    const found = this.ingredientPacks.find(p => p.id === packId);
+    return found ? found.name : `ID: ${packId}`;
+  }  
+
+  loadIngredientPacks() {
+    this.service.getAllIngredientPacks().subscribe(res => {
+      this.ingredientPacks = res;
+      console.log("Ingredient Packs Loaded:", res);
+    });
+  }
+  
+  openIngredientPackModal() {
+    const modalEl = document.getElementById('addIngredientPackModal');
+    if (!modalEl) {
+      console.error("ไม่พบ element modal addIngredientPackModal");
+      return;
+    }
+  
+    this.loadIngredientPacks();
+  
+    const ingredientModal = new (window as any).bootstrap.Modal(modalEl);
+    ingredientModal.show();
+  }
+  
+  submitIngredientPack() {
+    if (!this.selectedIngredientPack.ingredient_pack_id || !this.selectedIngredientPack.qty) {
+      console.log("ไม่มีการเลือก Ingredient Pack — ข้ามไปวัตถุดิบเดี่ยว");
+  
+      this.selectedIngredientPack = { ingredient_pack_id: null, qty: null };
+  
+      this.openMenuIngredientModal();
+      return;
+    }
+  
+    if (!this.createdMenuId) {
+      Swal.fire('Error', 'ไม่พบเมนูที่สร้าง กรุณาลองใหม่', 'error');
+      return;
+    }
+  
+    const data = {
+      menu_id: this.createdMenuId,
+      ingredient_pack_id: this.selectedIngredientPack.ingredient_pack_id,
+      qty: this.selectedIngredientPack.qty
+    };
+  
+    this.service.createMenuIngredientPack(data).subscribe(
+      res => {
+        Swal.fire('Success', 'เพิ่ม Ingredient Pack สำเร็จ!', 'success').then(() => {
+          const modalEl = document.getElementById('addIngredientPackModal');
+          if (modalEl) {
+            const modalInstance = (window as any).bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+          }
+  
+          this.selectedIngredientPack = { ingredient_pack_id: null, qty: null };
+  
+          setTimeout(() => {
+            this.openMenuIngredientModal();
+          }, 200);
+        });
+      },
+      err => {
+        console.error('Error:', err);
+        Swal.fire('Error', 'ไม่สามารถเพิ่ม Ingredient Pack ได้', 'error');
+      }
+    );
+  }      
+
+  openMenuIngredientModal() {
+    const modalEl = document.getElementById('addMenuIngredientModal');
+    if (!modalEl) {
+      console.error("ไม่พบ element modal addMenuIngredientModal");
+      return;
+    }
+  
+    this.service.getAllIngredients().subscribe(res => {
+      console.log("วัตถุดิบทั้งหมด:", res);
+      this.ingredients = res;
+  
+      this.menuIngredients = [{
+        id: null,
+        menu_id: this.editedMenu.id,
+        ingredient_id: null,
+        volume: null,
+        unit: '',
+        isNew: true
+      }];
+  
+      const modal = new (window as any).bootstrap.Modal(modalEl);
+      modal.show();
+    });
+  
+    this.selectedMenuIngredient = {
+      ingredient_id: null,
+      volume: null,
+      unit: ''
+    };
+  }  
+  
+  async submitMenuIngredient() {
+    console.log("submitMenuIngredient called");
+    console.log("editedMenu.id:", this.createdMenuId);
+    console.log("menuIngredients:", this.menuIngredients);
+  
+    if (!this.createdMenuId) {
+      Swal.fire('Error', 'ไม่พบเมนูที่จะเพิ่มวัตถุดิบ', 'error');
+      return;
+    }
+  
+    if (!this.menuIngredients.length) {
+      console.log("⏭ไม่มีวัตถุดิบเดี่ยว — ข้ามการเพิ่ม");
+      Swal.fire('Success', 'ไม่มีวัตถุดิบเดี่ยวให้เพิ่ม แต่สามารถดำเนินการต่อได้', 'success');
+      return;
+    }
+  
+    const hasIncomplete = this.menuIngredients.some(ing =>
+      !ing.ingredient_id || !ing.volume || !ing.unit
+    );
+  
+    if (hasIncomplete) {
+      Swal.fire('Success', 'ไม่ได้เพิ่มวัตถุดิบเฉพาะ', 'success');
+      return;
+    }
+  
+    try {
+      for (const ing of this.menuIngredients) {
+        const data = {
+          menu_id: this.createdMenuId,
+          ingredient_id: ing.ingredient_id,
+          volume: ing.volume,
+          unit: ing.unit
+        };
+  
+        console.log("ส่งข้อมูลวัตถุดิบ:", data);
+  
+        const res = await this.service.createMenuIngredient(data).toPromise();
+        console.log("ส่งสำเร็จ:", res);
+      }
+  
+      Swal.fire('Success', 'เพิ่มวัตถุดิบเดี่ยวสำเร็จ!', 'success');
+  
+      this.service.getMenuIngredients(this.createdMenuId).subscribe((res) => {
+        this.menuIngredients = res.filter((item: any) => item.menu_id === this.createdMenuId);
+      });
+  
+    } catch (error) {
+      console.error("Error ส่งวัตถุดิบ:", error);
+      Swal.fire('Error', 'ไม่สามารถเพิ่มวัตถุดิบได้บางรายการ', 'error');
+    }
+  }    
 
   loadMenusById(id: any) {
     console.log('Fetching menus for category ID:', id);
@@ -75,7 +235,6 @@ export class RecipeComponent implements OnInit {
     });
   }
 
-  // ฟังก์ชันเลือกไฟล์ภาพ
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
   }
@@ -105,7 +264,6 @@ export class RecipeComponent implements OnInit {
             this.loadMenusById(this.selectedId);
             this.resetForm();
 
-            // แก้ไข: รอให้ค่าของ createdMenuId อัปเดต
             setTimeout(() => {
                 this.createdMenuId = res.menu_id;
                 console.log("🔹 Created menu ID:", this.createdMenuId);
@@ -115,7 +273,7 @@ export class RecipeComponent implements OnInit {
                 } else {
                     console.error("Error: Menu ID is still null.");
                 }
-            }, 100); // รอ 100ms เพื่อให้ Angular อัปเดตค่า
+            }, 100);
         },
         error => {
             console.error("Error creating menu:", error);
@@ -145,7 +303,6 @@ export class RecipeComponent implements OnInit {
 
   removeStep(index: number) {
     this.steps.splice(index, 1);
-    // อัปเดตค่า step ใหม่ให้เป็นลำดับที่ถูกต้อง
     this.steps.forEach((step, i) => step.step = i + 1);
   }
 
@@ -177,7 +334,9 @@ export class RecipeComponent implements OnInit {
       }
     }
   
-    Swal.fire('Success', 'เพิ่มขั้นตอนสำเร็จ!', 'success');
+    Swal.fire('Success', 'เพิ่มขั้นตอนสำเร็จ!', 'success').then(() => {
+      this.openIngredientPackModal();
+    });    
   }  
 
   async createNewSteps() {
@@ -186,7 +345,6 @@ export class RecipeComponent implements OnInit {
       return;
     }
   
-    // กรองเฉพาะขั้นตอนใหม่
     const newSteps = this.steps.filter(step => step.isNew);
 
     if (newSteps.length === 0) {
@@ -197,7 +355,7 @@ export class RecipeComponent implements OnInit {
     for (const stepData of newSteps) {
       const stepPayload = {
         step: stepData.step,
-        menu_id: this.editedMenu.id,  // ใช้ `editedMenu.id` เพราะกำลังแก้ไขเมนู
+        menu_id: this.editedMenu.id, 
         description: stepData.description
       };
   
@@ -235,6 +393,11 @@ export class RecipeComponent implements OnInit {
   trackByFn(index: number, item: any) {
     return item.step;
   }
+
+  getIngredientName(ingredientId: number): string {
+    const found = this.ingredients.find(i => i.id === ingredientId);
+    return found ? found.name : `ID: ${ingredientId}`;
+  }  
   
   openEditMenuModal(menu: any) {
     console.log("เปิด Modal แก้ไขเมนู:", menu);
@@ -246,8 +409,22 @@ export class RecipeComponent implements OnInit {
     if (this.fileInput) {
       this.fileInput.nativeElement.value = "";
     }
+
+    this.loadIngredientPacks();
+
+    this.service.getAllIngredients().subscribe(res => {
+      console.log("วัตถุดิบที่โหลดได้", res);
+      this.ingredients = res.map((ing: any) => ({
+        ingredient_id: ing.Ingredients_id,
+        ingredient_name: ing.Ingredients_name
+      }));
+    });
+    
+    
+    this.service.getMenuIngredients(this.editedMenu.id).subscribe(res => {
+      this.menuIngredients = res.filter((item: any) => item.menu_id === this.editedMenu.id);
+    });    
   
-    // โหลดข้อมูลเมนูจาก API (ดึงข้อมูลที่อัปเดตล่าสุด)
     this.service.getMenuById(menu.id).subscribe(
       (res) => {
         this.editedMenu = res;
@@ -266,9 +443,13 @@ export class RecipeComponent implements OnInit {
           description: step.description,
           isNew: false
       }));
-  });
+    });
+
+    this.service.getMenuIngredientPacks(this.editedMenu.id).subscribe((res) => {
+      this.menuIngredientPacks = res.filter((item: any) => item.menu_id === this.editedMenu.id);
+      console.log("Ingredient Packs ในเมนู:", this.menuIngredientPacks);
+    });    
   
-    // เปิด Modal
     const editModal = new (window as any).bootstrap.Modal(document.getElementById('editMenuModal'));
     editModal.show();
   }
@@ -298,7 +479,6 @@ export class RecipeComponent implements OnInit {
         console.log("เมนูอัปเดตสำเร็จ!", res);
         Swal.fire("สำเร็จ", "อัปเดตเมนูเรียบร้อย!", "success");
         
-        // โหลดเมนูใหม่หลังอัปเดต
         this.loadMenusById(this.selectedId);
       },
       (error) => {
@@ -328,12 +508,11 @@ export class RecipeComponent implements OnInit {
             menu_id: this.editedMenu.id
         };
 
-        console.log(`📤 Sending update request for Step ID ${stepId}:`, stepPayload);
+        console.log(`Sending update request for Step ID ${stepId}:`, stepPayload);
 
         this.service.updateStep(stepId, stepPayload).subscribe(
             (res) => {
                 console.log(`Step ${stepId} updated successfully`, res);
-                // อัปเดต UI ให้เห็นการเปลี่ยนแปลง
                 this.getStepByMenuId(this.editedMenu.id);
             },
             (error) => {
@@ -346,4 +525,220 @@ export class RecipeComponent implements OnInit {
     Swal.fire('Success', 'บันทึกการแก้ไขขั้นตอนสำเร็จ!', 'success');
   }
 
+  updateMenuIngredientPacks() {
+    if (this.menuIngredientPacks.length === 0) {
+      Swal.fire('Warning', 'ไม่มี Ingredient Pack ที่จะอัปเดต', 'warning');
+      return;
+    }
+  
+    for (const pack of this.menuIngredientPacks) {
+      const payload = {
+        menu_id: pack.menu_id,
+        ingredient_pack_id: pack.ingredient_pack_id,
+        qty: pack.qty
+      };
+  
+      this.service.updateMenuIngredientPack(pack.id, payload).subscribe(
+        (res) => {
+          console.log(`อัปเดต Ingredient Pack ID ${pack.id} แล้ว`, res);
+        },
+        (err) => {
+          console.error(`ไม่สามารถอัปเดต Ingredient Pack ID ${pack.id}`, err);
+          Swal.fire('Error', 'ไม่สามารถอัปเดต Ingredient Pack ได้', 'error');
+        }
+      );
+    }
+  
+    Swal.fire('Success', 'อัปเดต Ingredient Pack สำเร็จ!', 'success');
+  }  
+
+  addNewMenuIngredient() {
+    if (!this.menuIngredients) this.menuIngredients = [];
+  
+    this.menuIngredients.push({
+      id: null,
+      menu_id: this.editedMenu.id,
+      ingredient_id: null,
+      volume: null,
+      unit: '',
+      isNew: true
+    });
+  }  
+
+  async createNewMenuIngredients() {
+    if (!this.editedMenu.id || !this.menuIngredients.length) {
+      Swal.fire('Error', 'ไม่มีข้อมูลวัตถุดิบ', 'error');
+      return;
+    }
+  
+    const newIngredients = this.menuIngredients.filter(i => i.isNew);
+  
+    const hasIncomplete = newIngredients.some(ing =>
+      !ing.ingredient_id || !ing.volume || !ing.unit
+    );
+  
+    if (hasIncomplete) {
+      Swal.fire('Error', 'กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+      return;
+    }
+  
+    try {
+      for (const ing of newIngredients) {
+        const data = {
+          menu_id: this.editedMenu.id,
+          ingredient_id: ing.ingredient_id,
+          volume: ing.volume,
+          unit: ing.unit
+        };
+  
+        console.log("สร้างวัตถุดิบใหม่:", data);
+        const res = await this.service.createMenuIngredient(data).toPromise();
+        console.log("สำเร็จ:", res);
+      }
+  
+      Swal.fire('Success', 'เพิ่มวัตถุดิบเดี่ยวใหม่สำเร็จ!', 'success');
+  
+      this.service.getMenuIngredients(this.editedMenu.id).subscribe((res) => {
+        this.menuIngredients = res.filter((item: any) => item.menu_id === this.editedMenu.id);
+      });
+  
+    } catch (error) {
+      console.error("เพิ่มวัตถุดิบล้มเหลว:", error);
+      Swal.fire('Error', 'ไม่สามารถเพิ่มวัตถุดิบได้บางรายการ', 'error');
+    }
+  }  
+  
+  updateMenuIngredients(): void {
+    this.menuIngredients = this.menuIngredients.map((item: any) => ({
+      ...item,
+      id: item.MenuIngredients_id || item.id
+    }));
+  
+    const existingIngredients = this.menuIngredients.filter(ing => !ing.isNew);
+  
+    if (existingIngredients.length === 0) {
+      Swal.fire('Warning', 'ไม่มีวัตถุดิบที่ต้องอัปเดต', 'warning');
+      return;
+    }
+  
+    existingIngredients.forEach(ing => {
+      const ingredientId = ing.id;
+  
+      if (!ingredientId || isNaN(Number(ingredientId))) {
+        console.error("ไม่มี ID หรือ ID ไม่ถูกต้อง:", ing);
+        return;
+      }
+  
+      if (!ing.ingredient_id || !ing.volume || !ing.unit) {
+        console.warn("พบข้อมูลไม่ครบ:", ing);
+        return;
+      }
+  
+      const payload = {
+        menu_id: this.editedMenu.id,
+        ingredient_id: ing.ingredient_id,
+        volume: ing.volume,
+        unit: ing.unit
+      };
+  
+      console.log(`ส่งอัปเดตวัตถุดิบเดี่ยว ID ${ingredientId}:`, payload);
+  
+      this.service.updateMenuIngredient(ingredientId, payload).subscribe(
+        (res) => {
+          console.log(`วัตถุดิบ ID ${ingredientId} อัปเดตสำเร็จ`, res);
+          this.service.getMenuIngredients(this.editedMenu.id).subscribe((res) => {
+            this.menuIngredients = res.filter((item: any) => item.menu_id === this.editedMenu.id)
+              .map((item: any) => ({
+                ...item,
+                id: item.MenuIngredients_id || item.id
+              }));
+          });
+        },
+        (err) => {
+          console.error(`อัปเดตวัตถุดิบ ID ${ingredientId} ล้มเหลว`, err);
+          Swal.fire('Error', `ไม่สามารถอัปเดตวัตถุดิบ ID ${ingredientId} ได้`, 'error');
+        }
+      );
+    });
+  
+    Swal.fire('Success', 'บันทึกการแก้ไขวัตถุดิบเดี่ยวสำเร็จ!', 'success');
+  }    
+  
+  deleteMenuIngredient(id: number) {
+    if (!id) {
+      this.menuIngredients = this.menuIngredients.filter(i => !i.isNew || i.id !== id);
+      return;
+    }
+  
+    this.service.deleteMenuIngredient(id).subscribe(
+      res => {
+        this.menuIngredients = this.menuIngredients.filter(i => i.id !== id);
+        Swal.fire('Deleted', 'ลบวัตถุดิบเดี่ยวแล้ว', 'success');
+      },
+      err => Swal.fire('Error', 'ลบไม่สำเร็จ', 'error')
+    );
+  }  
+
+  deleteFullMenu(): void {
+    if (!this.editedMenu.id) {
+      console.error("ไม่พบ ID เมนู");
+      Swal.fire("Error", "ไม่พบ ID เมนู", "error");
+      return;
+    }
+  
+    Swal.fire({
+      title: "ยืนยันการลบเมนูนี้?",
+      text: "การลบนี้จะลบข้อมูลทั้งหมดที่เกี่ยวข้องกับเมนูนี้ด้วย",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, ลบเลย",
+      cancelButtonText: "ยกเลิก"
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+  
+      const menuId = this.editedMenu.id;
+  
+      try {
+        if (this.steps.length > 0) {
+          for (const step of this.steps) {
+            if (step.id) {
+              await this.service.deleteStep(step.id).toPromise();
+              console.log(`ลบ Step ID ${step.id} สำเร็จ`);
+            }
+          }
+        }
+        if (this.menuIngredientPacks.length > 0) {
+          for (const pack of this.menuIngredientPacks) {
+            if (pack.id) {
+              await this.service.deleteMenuIngredientPack(pack.id).toPromise();
+              console.log(`ลบ Ingredient Pack ID ${pack.id} สำเร็จ`);
+            }
+          }
+        }
+        if (this.menuIngredients.length > 0) {
+          for (const ing of this.menuIngredients) {
+            if (ing.MenuIngredients_id) {
+              await this.service.deleteMenuIngredient(ing.MenuIngredients_id).toPromise();
+              console.log(`ลบวัตถุดิบ ID ${ing.MenuIngredients_id} สำเร็จ`);
+            }
+          }
+        }
+        await this.service.deleteMenu(menuId).toPromise();
+        console.log(`ลบเมนูหลัก ID ${menuId} สำเร็จ`);
+  
+        Swal.fire("Deleted!", "ลบเมนูและข้อมูลที่เกี่ยวข้องแล้ว", "success");
+        this.loadMenusById(this.selectedId);
+  
+        const editModal = (window as any).bootstrap.Modal.getInstance(document.getElementById('editMenuModal'));
+        if (editModal) editModal.hide();
+        this.editedMenu = {};
+        this.steps = [];
+        this.menuIngredientPacks = [];
+        this.menuIngredients = [];
+      } catch (err) {
+        console.error("ลบเมนูไม่สำเร็จ:", err);
+        Swal.fire("Error", "เกิดข้อผิดพลาดระหว่างลบเมนู", "error");
+      }
+    });
+  }  
 }

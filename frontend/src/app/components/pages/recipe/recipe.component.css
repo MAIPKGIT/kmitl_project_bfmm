@@ -28,3 +28,13 @@
     align-items: center;
     justify-content: center;
 }
+
+.fw-bold {
+    color: #5C3D2E !important;
+}
+
+.modal-custom {
+    background-color: #5C3D2E;
+    color: white;
+    font-weight: bold;
+}

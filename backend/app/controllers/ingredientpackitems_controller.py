@@ -14,24 +14,20 @@ def validate_input(data, required_keys):
 def create_ingredient_pack_item():
     try:
         data = request.get_json()
+
         required_keys = ["ingredient_pack_id", "ingredient_id", "qty"]
         is_valid, message = validate_input(data, required_keys)
-
         if not is_valid:
             return jsonify({"message": message}), 400
 
-        ingredient_pack_id = data["ingredient_pack_id"]
-        ingredient_id = data["ingredient_id"]
-        qty = data["qty"]
-
-        # Input Validation
-        if not isinstance(qty, int) or qty < 0:
+        # ตรวจสอบค่า qty
+        if not isinstance(data["qty"], int) or data["qty"] < 0:
             return jsonify({"message": "qty must be a non-negative integer!"}), 400
 
         new_ingredient_pack_item = IngredientPackItems(
-            ingredient_pack_id=ingredient_pack_id,
-            ingredient_id=ingredient_id,
-            qty=qty
+            ingredient_pack_id=data["ingredient_pack_id"],
+            ingredient_id=data["ingredient_id"],
+            qty=data["qty"]
         )
         db.session.add(new_ingredient_pack_item)
         db.session.commit()
@@ -97,5 +93,14 @@ def delete_ingredient_pack_item(ingredient_pack_item_id):
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"message": f"Database Error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500
+
+def get_ingredient_pack_items_by_pack_id(ingredient_pack_id):
+    try:
+        items = IngredientPackItems.query.filter_by(ingredient_pack_id=ingredient_pack_id).all()
+        if items:
+            return jsonify([item.as_dict() for item in items]), 200
+        return jsonify({"message": "No items found for this ingredient pack ID!"}), 404
     except Exception as e:
         return jsonify({"message": f"Unexpected Error: {str(e)}"}), 500

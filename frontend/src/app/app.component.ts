@@ -20,7 +20,8 @@ export class AppComponent {
       || currentUrl.startsWith('/recipe/') 
       || currentUrl.startsWith('/ingredient') 
       || currentUrl.startsWith('/waste')
-      || currentUrl.startsWith('/history');
+      || currentUrl.startsWith('/history')
+      || currentUrl.startsWith('/table');
     });
   }
 }

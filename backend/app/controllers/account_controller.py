@@ -123,7 +123,7 @@ def login():
         additional_claims = {"role": account.role}
         access_token = create_access_token(identity=account.id, additional_claims=additional_claims, expires_delta=timedelta(hours=12))
 
-        return jsonify({"   ": access_token}), 200
+        return jsonify({"token": access_token}), 200
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
 

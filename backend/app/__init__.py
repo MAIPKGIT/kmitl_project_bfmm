@@ -18,9 +18,9 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     CORS(app, resources={r"/*": {
-        "origins": "*",             # ✅ อนุญาตทุก Origin
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # ✅ อนุญาตทุก Method
-        "allow_headers": ["*"],     # ✅ อนุญาตทุก Header
+        "origins": "*",             
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
+        "allow_headers": ["*"],   
         "supports_credentials": True
     }})
 

@@ -34,7 +34,7 @@ export class LoginComponent implements OnInit {
 
     this.route.queryParams.subscribe(params => {
       if (params['redirectUrl']) {
-        this.redirectUrl = params['redirectUrl']; // ถ้ามี redirectUrl ให้ใช้ path นั้น
+        this.redirectUrl = params['redirectUrl'];
       }
     });
   }
@@ -43,18 +43,21 @@ export class LoginComponent implements OnInit {
     const credentials = this.loginForm.value;
     this.loginService.login(credentials).subscribe({
       next: (response: any) => {
-        console.log('Test 1 : ',response); 
-        this.tokenStorage.saveToken(response.access_token);
+        console.log('Test 1 : ', response);
+        this.tokenStorage.saveToken(response.token); 
+        console.log('Saved Token:', this.tokenStorage.getToken());
         // this.tokenStorage.getToken()
         // console.log('Test 2 : ',this.tokenStorage.getToken());
         this.tokenStorage.saveUser(response.username)
         Swal.fire('Login Successful!', response.message, 'success');
         this.router.navigate([this.redirectUrl]);
       },
-      error: (response) => {
-        console.error(response.message);
-        Swal.fire('Login Failed', response.message, 'error');
+      error: (errorResponse) => {
+        console.error(errorResponse);
+        const errorMessage = errorResponse.error?.message || 'Login failed. Please try again!';
+        Swal.fire('Login Failed', errorMessage, 'error');
       },
+      
     });
   }
 }

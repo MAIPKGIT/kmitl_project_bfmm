@@ -14,29 +14,33 @@ def validate_input(data, required_keys):
 def create_ingredient_pack():
     try:
         data = request.get_json()
-        required_keys = ["menu_id", "ingredient_pack_id", "qty"]
+        required_keys = ["name", "description", "stock"]
         is_valid, message = validate_input(data, required_keys)
 
         if not is_valid:
             return jsonify({"message": message}), 400
 
-        menu_id = data["menu_id"]
-        ingredient_pack_id = data["ingredient_pack_id"]
-        qty = data["qty"]
+        name = data["name"]
+        description = data["description"]
+        stock = data["stock"]
 
-        # Input Validation
-        if not isinstance(qty, int) or qty < 0:
-            return jsonify({"message": "qty must be a non-negative integer!"}), 400
+        # Validate stock
+        if not isinstance(stock, int) or stock < 0:
+            return jsonify({"message": "stock must be a non-negative integer!"}), 400
 
         new_ingredient_pack = IngredientPack(
-            menu_id=menu_id,
-            ingredient_pack_id=ingredient_pack_id,
-            qty=qty
+            name=name,
+            description=description,
+            stock=stock
         )
         db.session.add(new_ingredient_pack)
         db.session.commit()
 
-        return jsonify({"message": "IngredientPack created successfully!"}), 201
+        return jsonify({
+            "message": "IngredientPack created successfully!",
+            "id": new_ingredient_pack.id 
+        }), 201
+
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"message": f"Database Error: {str(e)}"}), 500
@@ -68,13 +72,13 @@ def update_ingredient_pack(ingredient_pack_id):
         ingredient_pack = IngredientPack.query.get(ingredient_pack_id)
 
         if ingredient_pack:
-            ingredient_pack.menu_id = data.get("menu_id", ingredient_pack.menu_id)
-            ingredient_pack.ingredient_pack_id = data.get("ingredient_pack_id", ingredient_pack.ingredient_pack_id)
-            ingredient_pack.qty = data.get("qty", ingredient_pack.qty)
+            if "stock" in data:
+                if not isinstance(data["stock"], int) or data["stock"] < 0:
+                    return jsonify({"message": "stock must be a non-negative integer!"}), 400
 
-            # Input Validation
-            if "qty" in data and (not isinstance(data["qty"], int) or data["qty"] < 0):
-                return jsonify({"message": "qty must be a non-negative integer!"}), 400
+            ingredient_pack.name = data.get("name", ingredient_pack.name)
+            ingredient_pack.description = data.get("description", ingredient_pack.description)
+            ingredient_pack.stock = data.get("stock", ingredient_pack.stock)
 
             db.session.commit()
             return jsonify({"message": "IngredientPack updated successfully!"}), 200
