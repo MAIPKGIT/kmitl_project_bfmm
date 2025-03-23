@@ -1,18 +1,18 @@
 <div class="check-category">
     <div class="form-check form-check-inline" *ngFor="let category of menu_types">
-        <input class="form-check-input" type="checkbox" [id]="'Checkbox' + category.id" [value]="category.id" [checked]="selectedCategories.includes(category.id)"
-            (change)="onCategoryChange($event)">
+        <input class="form-check-input" type="checkbox" [id]="'Checkbox' + category.id" [value]="category.id"
+            [checked]="selectedCategories.includes(category.id)" (change)="onCategoryChange($event)">
         <label class="form-check-label" [for]="'Checkbox' + category.id">{{ category.name }}</label>
     </div>
 </div>
 
 <div class="audio-record-container">
-  <button *ngIf="!isRecording" (click)="startRecording()" class="btn btn-primary">
-    เริ่มบันทึกเสียง
-  </button>
-  <button *ngIf="isRecording" (click)="stopRecording()" class="btn btn-danger">
-    หยุดบันทึก
-  </button>
+    <button *ngIf="!isRecording" (click)="startRecording()" class="btn btn-primary">
+        เริ่มบันทึกเสียง
+    </button>
+    <button *ngIf="isRecording" (click)="stopRecording()" class="btn btn-danger">
+        หยุดบันทึก
+    </button>
 </div>
 
 <div class="container-order">
@@ -21,7 +21,8 @@
             <h6 class="fw-bold">ออเดอร์ที่ {{ order.order_id }}, โต๊ะที่ {{ order.table_id }}</h6>
             <p class="text-muted">{{ order.orders_items?.[0] ?.create_date || '-' }}</p>
 
-            <div class="order-item d-flex align-items-start" *ngFor="let item of order.orders_items" [ngClass]="getOrderItemClass(item)">
+            <div class="order-item d-flex align-items-start" *ngFor="let item of order.orders_items"
+                [ngClass]="getOrderItemClass(item)">
                 <div class="flex-grow-1">
                     <h6 class="mb-1">
                         {{ item.menus?.[0]?.menu_name || 'ไม่มีข้อมูล' }}
@@ -32,17 +33,13 @@
                 <div class="order-status">
                     <p>
                         <strong>เตรียม</strong>
-                        <span 
-                            class="status-indicator"
-                            [class]="getOrderStatusClass(item.order_item_id)"
+                        <span class="status-indicator" [class]="getOrderStatusClass(item.order_item_id)"
                             (click)="changeOrderStatus(order.order_id, item.order_item_id)">
                         </span>
                     </p>
                     <p>
                         <strong>เสิร์ฟ</strong>
-                        <span 
-                            class="status-indicator"
-                            [class]="getServeStatusClass(item.order_item_id)"
+                        <span class="status-indicator" [class]="getServeStatusClass(item.order_item_id)"
                             (click)="changeServeStatus(order.order_id, item.order_item_id)">
                         </span>
                     </p>
@@ -50,16 +47,12 @@
                 <div class="order-status">
                     <p>
                         <strong>ยกเลิก</strong>
-                        <span 
-                            class="status-indicator"
-                            (click)="cancelOrder(order.order_id, item.order_item_id)">
+                        <span class="status-indicator" (click)="cancelOrder(order.order_id, item.order_item_id)">
                         </span>
                     </p>
                     <p>
                         <strong>waste</strong>
-                        <span 
-                            class="status-indicator"
-                            (click)="wasteOrder(item.order_item_id, (item.menus && item.menus.length > 0) ? item.menus[0].menu_name : '', 
+                        <span class="status-indicator" (click)="wasteOrder(item.order_item_id, (item.menus && item.menus.length > 0) ? item.menus[0].menu_name : '', 
                             (item.menus && item.menus.length > 0) ? item.menus[0].menu_qty : 0)">
                         </span>
                     </p>
@@ -78,8 +71,3 @@
 <ng-template #noData>
     <p>ยังไม่มีข้อมูล</p>
 </ng-template>
-
-
-
-
-

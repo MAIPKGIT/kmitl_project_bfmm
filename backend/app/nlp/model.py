@@ -28,7 +28,7 @@ from flask_cors import cross_origin
 from pydub.utils import which
 
 # ตั้งค่า ffmpeg path
-ffmpeg_path = r"D:\ffmpeg\ffmpeg\bin" #เปลี่ยน path ให้ตรงตามเครื่องของตนเอง
+ffmpeg_path = r"C:\F_Utility\ffmpeg-master-latest-win64-gpl-shared\bin"
 os.environ["PATH"] += os.pathsep + ffmpeg_path
 
 AudioSegment.converter = os.path.join(ffmpeg_path, "ffmpeg.exe")
@@ -41,7 +41,7 @@ print(f"Using ffmpeg: {AudioSegment.converter}")  # ตรวจสอบว่�
 def upload_audio():
     file = request.files["file"]
     
-    output_dir = r"D:\KMITL\final_project_kmitl\เริ่มใหม่เทอม_2\BFMM\kmitl_project_bfmm\backend\app\nlp\output" #เปลี่ยน path ให้ตรงตามเครื่องของตนเอง
+    output_dir = r"C:\F_University\Mile_24-2-68\Project\Backend\app\nlp\output"
     os.makedirs(output_dir, exist_ok=True)
 
     temp_upload_path = os.path.join(output_dir, file.filename)
@@ -59,7 +59,7 @@ def upload_audio():
         print("⚠️ Detected WebM/Opus file, converting to WAV...")
 
         convert_cmd = [
-            "ffmpeg","-y", "-i", temp_upload_path,
+            "ffmpeg", "-y", "-i", temp_upload_path,
             "-acodec", "pcm_s16le",
             "-ar", "44100",
             "-ac", "2",
@@ -71,12 +71,10 @@ def upload_audio():
         audio_wav = "speech.wav"
         text = recognize_audio(audio_wav)
         text_new = convert_text(text)
-        result = predict_resp(text_new)  # การประมวลผลจาก AI
+        result_data = predict_resp(text_new)
 
-        # ใช้ข้อมูลที่ได้จาก AI ในการเรียกฟังก์ชัน change_status_order
-        change_status_order(result)  # ส่งผลลัพธ์จาก predict_resp()
-
-        return jsonify({"text": text, "result": result}), 200
+        # เรียกใช้ change_status_order
+        return change_status_order(result_data)
     else:
         print("✅ File is a real MP3, converting MP3 to WAV...")
         audio = AudioSegment.from_file(temp_upload_path, format="mp3")
@@ -87,6 +85,7 @@ def upload_audio():
         return jsonify({"error": "WAV file is empty or conversion failed"}), 500
 
     return jsonify({"text": "Conversion successful", "wav_file": fixed_wav_path}), 200
+
 
 def recognize_audio(audio_stream):
     recog = sr.Recognizer()
@@ -118,12 +117,11 @@ import sklearn_crfsuite
 from pythainlp.tokenize import word_tokenize
 from pythainlp.tag import pos_tag
 from rapidfuzz import process
+from app.models.menu import Menu
 
-menu_list = ["ข้าวกระเพราแซ่บเนื้อไข่ดาว", "กระเพราหมูกรอบ", "กระเพราทะเล", "ข้าวผัดกุ้ง", "ต้มยำกุ้ง"]
+# menu_list = ["ข้าวกระเพราแซ่บเนื้อไข่ดาว", "กระเพราหมูกรอบ", "กระเพราทะเล", "ข้าวผัดกุ้ง", "ต้มยำกุ้ง"]
 
-print("testtest")
-
-model = r'D:\KMITL\final_project_kmitl\เริ่มใหม่เทอม_2\BFMM\kmitl_project_bfmm\backend\app\nlp\crf_model_ner_v1' #เปลี่ยน path ให้ตรงตามเครื่องของตนเอง แต่เก็บ \crf_model_ner_v1 เอาไว้
+model = r'C:\F_University\Mile_24-2-68\Project\Backend\app\nlp\crf_model_ner_v1'
 crf_model = sklearn_crfsuite.CRF(
     algorithm='lbfgs',
     c1=0.1,
@@ -191,6 +189,9 @@ def process_data(data):
     result = {"TABLE": [], "COMMAND": "", "FOOD": [], "QUESTION": False}
     current_table = None
     current_food = []
+
+    menu_list = Menu.query.all()
+    menu_list = [menu.name for menu in menu_list]
     
     for word, tag, label in data:
         if label.startswith("B-TABLE"):
@@ -248,87 +249,193 @@ def validate_input(data, required_keys):
             return False, f"{key} is required!"
     return True, ""
 
+def stock_manager(menu_id, qty):
+    try:
+        print("📦 เริ่มระบบ stock_manager...")
+
+        # --- 1. จัดการ stock วัตถุดิบจาก table 'menuingredients' ---
+        print(f"🔍 ดึงวัตถุดิบเดี่ยวของ menu_id: {menu_id}")
+        menu_ingredients = db.session.execute(
+            text("SELECT ingredient_id, volume FROM menuingredients WHERE menu_id = :menu_id"),
+            {"menu_id": menu_id}
+        ).mappings().fetchall()
+
+        if not menu_ingredients:
+            print("⚠️ ไม่พบข้อมูลใน menuingredients")
+
+        ingredient_ids = [ingredient["ingredient_id"] for ingredient in menu_ingredients]
+
+        ingredient_stocks = []
+        if ingredient_ids:
+            ingredient_stocks = db.session.execute(
+                text(f"SELECT Ingredients_id, main_stock FROM ingredients WHERE Ingredients_id IN ({', '.join(map(str, ingredient_ids))})")
+            ).mappings().fetchall()
+
+        stock_dict = {item["Ingredients_id"]: item["main_stock"] for item in ingredient_stocks}
+
+        for ingredient in menu_ingredients:
+            ingredient_id = ingredient["ingredient_id"]
+            volume = ingredient["volume"]
+            if ingredient_id in stock_dict:
+                used_amount = volume * qty
+                new_stock = stock_dict[ingredient_id] - used_amount
+                print(f"→ ลด stock วัตถุดิบ id {ingredient_id}: -{used_amount}, คงเหลือใหม่: {new_stock}")
+
+                db.session.execute(
+                    text("UPDATE ingredients SET main_stock = :new_stock WHERE Ingredients_id = :ingredient_id"),
+                    {"new_stock": new_stock, "ingredient_id": ingredient_id}
+                )
+            else:
+                print(f"❗ ไม่พบ ingredient_id {ingredient_id} ใน stock")
+                return jsonify({"message": f"Ingredient with id {ingredient_id} not found!"}), 404
+
+        # --- 2. จัดการ stock จากระบบ Pack (menuingredientpack) ---
+        print(f"🔍 ดึงวัตถุดิบแบบ Pack ของ menu_id: {menu_id}")
+        menu_ingredient_packs = db.session.execute(
+            text("SELECT ingredient_pack_id, qty FROM menuingredientpack WHERE menu_id = :menu_id"),
+            {"menu_id": menu_id}
+        ).mappings().fetchall()
+
+        if not menu_ingredient_packs:
+            print("⚠️ ไม่พบข้อมูลใน menuingredientpack")
+
+        pack_ids = [pack["ingredient_pack_id"] for pack in menu_ingredient_packs]
+
+        ingredient_pack_stocks = []
+        if pack_ids:
+            ingredient_pack_stocks = db.session.execute(
+                text(f"SELECT id, stock FROM ingredientpack WHERE id IN ({', '.join(map(str, pack_ids))})")
+            ).mappings().fetchall()
+
+        pack_stock_dict = {item["id"]: item["stock"] for item in ingredient_pack_stocks}
+
+        for pack in menu_ingredient_packs:
+            pack_id = pack["ingredient_pack_id"]
+            pack_qty = pack["qty"]
+            if pack_id in pack_stock_dict:
+                used_amount = pack_qty * qty
+                new_stock = pack_stock_dict[pack_id] - used_amount
+                print(f"→ ลด stock Pack id {pack_id}: -{used_amount}, คงเหลือใหม่: {new_stock}")
+
+                db.session.execute(
+                    text("UPDATE ingredientpack SET stock = :new_stock WHERE id = :pack_id"),
+                    {"new_stock": new_stock, "pack_id": pack_id}
+                )
+            else:
+                print(f"❗ ไม่พบ ingredient_pack_id {pack_id} ใน stock")
+                return jsonify({"message": f"Ingredient Pack with id {pack_id} not found!"}), 404
+
+        db.session.commit()
+        print("✅ stock_manager ทำงานสำเร็จทั้งหมด")
+        return {"status": 200, "message": "Stock has been successfully updated!"}
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(f"❌ Database Error: {str(e)}")
+        return {"status": 500, "message": f"Database Error: {str(e)}"}
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Unexpected Error: {str(e)}")
+        return {"status": 500, "message": f"Unexpected Error: {str(e)}"}
+
 def change_status_order(ai_data):
     try:
-        print("❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤")
+        print("❤❤❤ เริ่มต้นเปลี่ยนสถานะคำสั่งซื้อ ❤❤❤")
         print(f"Data received from AI: {ai_data}")
 
-        # ตรวจสอบว่าข้อมูลที่ได้จาก AI ถูกต้องครบถ้วนหรือไม่
-        required_keys = ['TABLE', 'COMMAND', 'FOOD']  # แก้ไขให้ตรงกับข้อมูลที่ได้รับ
+        required_keys = ['TABLE', 'COMMAND', 'FOOD']
         valid, message = validate_input(ai_data, required_keys)
         if not valid:
-            print("ขั้นตอนที่ 1: ข้อมูลจาก AI ไม่ครบถ้วน:", message)
             return jsonify({"message": message}), 400
 
-        table_id = ai_data['TABLE'][0]  # ใช้ค่า table จาก ai_data
-        command_type = ai_data['COMMAND']  # ใช้ค่า command จาก ai_data
-        food_name = ai_data['FOOD'][0]  # ใช้ชื่ออาหารจาก ai_data
+        table_id = ai_data['TABLE'][0]
+        command_type = ai_data['COMMAND']
+        food_name = ai_data['FOOD'][0]
 
-        # ตรวจสอบว่า command_type เป็นค่า valid หรือไม่
-        print(f"ขั้นตอนที่ 2: ตรวจสอบ command_type = {command_type}")
         if command_type not in ['COMMAND_1', 'COMMAND_2']:
-            print(f"ข้อผิดพลาด: 'command_type' ต้องเป็น 'COMMAND_1' หรือ 'COMMAND_2', พบ {command_type}")
             return jsonify({"message": "'command_type' must be either 'COMMAND_1' or 'COMMAND_2'!"}), 400
 
-        # ค้นหา ID ของเมนูจากชื่ออาหาร
-        print(f"ขั้นตอนที่ 3: ค้นหาข้อมูลเมนูจากชื่ออาหาร {food_name}")
+        # หา menu_id จาก food_name
         menu = db.session.execute(
             text("SELECT id FROM menu WHERE name = :food_name"),
             {"food_name": food_name}
         ).mappings().fetchone()
 
         if not menu:
-            print(f"ข้อผิดพลาด: ไม่พบอาหารในเมนูที่ชื่อ '{food_name}'")
             return jsonify({"message": "Food not found in menu!"}), 404
 
         menu_id = menu['id']
-        print(f"ได้ menu_id = {menu_id} จากชื่ออาหาร {food_name}")
 
-        # ขั้นตอนที่ 4: หา order_id จาก table_id ที่ได้รับจาก AI
-        print(f"ขั้นตอนที่ 4: หา order_id จาก table_id {table_id} ที่ได้รับจาก AI")
+        # หา order_id จาก table_id
         order_query = db.session.query(Order).filter_by(table_id=table_id).first()
-        
-        # ตรวจสอบว่า order_query มีข้อมูลหรือไม่
         if not order_query:
-            print(f"ข้อผิดพลาด: ไม่พบคำสั่งซื้อที่ active สำหรับ table_id {table_id}")
             return jsonify({"message": f"No active order found for table {table_id}"}), 404
 
-        print(f"order_query: {order_query}")  # ตรวจสอบว่าได้ข้อมูลอะไรจากฐานข้อมูล
         order_id = order_query.order_id
-        print(f"ได้ order_id = {order_id} สำหรับ table_id {table_id}")
 
-        # ขั้นตอนที่ 5: เปลี่ยนสถานะ order
-        print(f"ขั้นตอนที่ 5: เปลี่ยนสถานะคำสั่งซื้อ: {order_id} สำหรับอาหาร {food_name}")
+        # หา status_order เดิม
+        existing_status = db.session.execute(
+            text("SELECT status_order FROM orderitem WHERE menu_id = :menu_id AND order_id = :order_id"),
+            {"menu_id": menu_id, "order_id": order_id}
+        ).mappings().fetchone()
 
-        # กำหนดค่าของ status ตาม command_type
-        status_mapping = {
-            'COMMAND_1': 1,
-            'COMMAND_2': 2
-        }
+        if not existing_status:
+            return jsonify({"message": "Order item not found!"}), 404
 
-        # ตรวจสอบว่า command_type อยู่ใน status_mapping หรือไม่
-        status = status_mapping.get(command_type)
+        current_status = existing_status["status_order"]
+        print(f"สถานะเดิมของ orderitem: {current_status}")
 
-        if status is None:
-            print(f"ข้อผิดพลาด: ไม่พบค่าที่แมตช์สำหรับ command_type: {command_type}")
-            return jsonify({"message": f"Invalid command_type: {command_type}"}), 400
+        # Mapping command เป็นสถานะใหม่
+        status_mapping = {'COMMAND_1': 1, 'COMMAND_2': 2}
+        new_status = status_mapping.get(command_type)
 
-        # อัพเดต status_order ในฐานข้อมูล
+        # เช็กว่ามีการลดสถานะไหม (ไม่อนุญาต)
+        if new_status <= current_status:
+            return jsonify({"message": "ไม่อนุญาตให้ลดสถานะของคำสั่งซื้อ!"}), 400
+
+        # อัปเดตสถานะ
         db.session.execute(
             text("UPDATE orderitem SET status_order = :status WHERE menu_id = :menu_id AND order_id = :order_id"),
-            {"status": status, "menu_id": menu_id, "order_id": order_id}
+            {"status": new_status, "menu_id": menu_id, "order_id": order_id}
         )
         db.session.commit()
 
-        return jsonify({"message": "Status updated successfully"}), 200
+        print("✅ อัปเดตสถานะสำเร็จ!")
+
+        # ดึง qty เพื่อส่งไป stock_manager
+        qty_result = db.session.execute(
+            text("SELECT menu_qty FROM orderitem WHERE menu_id = :menu_id AND order_id = :order_id"),
+            {"menu_id": menu_id, "order_id": order_id}
+        ).mappings().fetchone()
+
+        # ตรวจสอบผลลัพธ์จากการ query
+        if qty_result:
+            print(f"Result of qty query: {qty_result}")
+            qty = qty_result['menu_qty']  # ดึง menu_qty ที่ได้
+        else:
+            print(f"No qty found for menu_id: {menu_id} and order_id: {order_id}")
+            qty = 0  # หรือกำหนดค่า default หากไม่พบข้อมูล
+
+        if not qty_result:
+            print("ไม่พบจำนวน qty ของ orderitem")
+            return jsonify({"message": "ไม่พบจำนวน qty ของ orderitem"}), 404
+
+        qty = qty_result["menu_qty"]
+
+        # เรียกใช้งาน stock_manager
+        stock_result = stock_manager(menu_id, qty)
+
+        if stock_result["status"] != 200:
+            print("Status updated, but stock error occurred!")
+            return jsonify({"message": "Status updated, but stock error occurred!", "stock_result": stock_result}), 500
+
+        print("Status updated successfully")
+        return jsonify({"message": "Status updated successfully", "stock_result": stock_result}), 200
+
     except SQLAlchemyError as e:
         db.session.rollback()
-        print(f"ข้อผิดพลาดใน SQLAlchemyError: {str(e)}")
+        print(f"SQLAlchemyError : {e}")
         return jsonify({"message": str(e)}), 500
     except Exception as e:
-        print(f"ข้อผิดพลาดทั่วไป: {str(e)}")
+        print(f"Exception : {e}")
         return jsonify({"message": str(e)}), 500
-
-
-
-

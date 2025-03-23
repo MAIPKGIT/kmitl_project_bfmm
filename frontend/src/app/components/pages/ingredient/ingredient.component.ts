@@ -149,11 +149,18 @@ export class IngredientComponent implements OnInit {
   editPack(pack: any) {
     this.editPackData = { ...pack };
   
-    this.service.getItemsByPackId(pack.id).subscribe((items) => {
-      this.editItems = items;
-      this.openEditModal();
+    this.service.getItemsByPackId(pack.id).subscribe({
+      next: (items) => {
+        this.editItems = items;
+        this.openEditModal();
+      },
+      error: (err) => {
+        console.warn("ไม่พบ Items หรือเกิดข้อผิดพลาด: ", err);
+        this.editItems = []; 
+        this.openEditModal();
+      }
     });
-  }
+  }  
   
   openEditModal() {
     const modalElement = document.getElementById('editPackModal');
@@ -202,21 +209,29 @@ export class IngredientComponent implements OnInit {
       cancelButtonText: 'ยกเลิก'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.service.getItemsByPackId(packId).subscribe((items) => {
-          const deletePromises = items.map((item: any) =>
-            this.service.deleteItem(item.id).toPromise()
-          );
-  
-          Promise.all(deletePromises).then(() => {
+        this.service.getItemsByPackId(packId).subscribe({
+          next: (items) => {
+            const deletePromises = items.map((item: any) =>
+              this.service.deleteItem(item.id).toPromise()
+            );
+            Promise.all(deletePromises).then(() => {
+              this.service.deletePack(packId).subscribe(() => {
+                Swal.fire('สำเร็จ', 'ลบ Pack และไอเทมทั้งหมดแล้ว', 'success');
+                this.loadPackData();
+              });
+            });
+          },
+          error: (err) => {
+            console.warn("ไม่พบ Items หรือเกิดข้อผิดพลาด: ", err);
             this.service.deletePack(packId).subscribe(() => {
-              Swal.fire('สำเร็จ', 'ลบ Pack และไอเทมทั้งหมดแล้ว', 'success');
+              Swal.fire('สำเร็จ', 'ลบ Pack เรียบร้อยแล้ว (ไม่มี Item)', 'success');
               this.loadPackData();
             });
-          });
+          }
         });
       }
     });
-  } 
+  }  
 
   onImageSelected(event: any) {
     this.selectedImageFile = event.target.files[0];
